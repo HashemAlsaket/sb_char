@@ -227,16 +227,16 @@ st.markdown(f"""
         margin: 0 auto;
     }}
     .category-score-circle.red {
-        background-color: {score_colors["red"]};
+        background-color: {{score_colors["red"]}};
     }
     .category-score-circle.orange {
-        background-color: {score_colors["orange"]};
+        background-color: {{score_colors["orange"]}};
     }
     .category-score-circle.yellow {
-        background-color: {score_colors["yellow"]};
+        background-color: {{score_colors["yellow"]}};
     }
     .category-score-circle.green {
-        background-color: {score_colors["green"]};
+        background-color: {{score_colors["green"]}};
     }
     .tab-score-value {
         font-size: 24px;
