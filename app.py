@@ -16,14 +16,6 @@ secondary_color = "#ffffff"  # White from logo
 accent_color = "#121212"   # Dark background
 background_color = "#0a0a0a"  # Near black background
 
-# Score color coding
-score_colors = {
-    "red": "#ff4e50",      # Low scores (0-39)
-    "orange": "#fc913a",   # Medium-low scores (40-59)
-    "yellow": "#f9d62e",   # Medium-high scores (60-79)
-    "green": "#52bf90"     # High scores (80-100)
-}
-
 # Custom CSS with theme to match logo - simplified for clarity
 st.markdown(f"""
 <style>
@@ -180,8 +172,8 @@ st.markdown(f"""
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 80px;
-        height: 80px;
+        width: 100px;
+        height: 100px;
         border-radius: 50%;
         background: linear-gradient(to right, {primary_color}, #00e6e6);
         color: #000000;
@@ -190,15 +182,14 @@ st.markdown(f"""
         border: 3px solid #ffffff;
     }}
     .score-value {{
-        font-size: 28px;
+        font-size: 36px;
         font-weight: 800;
     }}
     .score-label {{
-        margin-top: 8px;
-        font-size: 14px;
+        margin-top: 10px;
+        font-size: 16px;
         font-weight: 600;
         color: {secondary_color};
-        text-align: center;
     }}
     .score-explanation {{
         background-color: rgba(40, 40, 40, 0.4);
@@ -206,67 +197,6 @@ st.markdown(f"""
         border-radius: 4px;
         margin-top: 10px;
         border-left: 3px solid {primary_color};
-    }}
-    
-    /* Tab score styling */
-    .tab-score-container {{
-        display: flex;
-        justify-content: center;
-        margin-bottom: 15px;
-    }}
-    .category-score-circle {{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        color: #000000;
-        font-weight: bold;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        margin: 0 auto;
-    }}
-    .category-score-circle.red {
-        background-color: {{score_colors["red"]}};
-    }
-    .category-score-circle.orange {
-        background-color: {{score_colors["orange"]}};
-    }
-    .category-score-circle.yellow {
-        background-color: {{score_colors["yellow"]}};
-    }
-    .category-score-circle.green {
-        background-color: {{score_colors["green"]}};
-    }
-    .tab-score-value {
-        font-size: 24px;
-        font-weight: 800;
-    }
-    .tab-score-explanation {
-        padding: 10px 15px;
-        border-radius: 4px;
-        border-left: 4px solid transparent;
-    }
-    .tab-score-explanation.red {
-        border-left-color: {score_colors["red"]};
-        background-color: rgba(255, 78, 80, 0.1);
-    }
-    .tab-score-explanation.orange {
-        border-left-color: {score_colors["orange"]};
-        background-color: rgba(252, 145, 58, 0.1);
-    }
-    .tab-score-explanation.yellow {
-        border-left-color: {score_colors["yellow"]};
-        background-color: rgba(249, 214, 46, 0.1);
-    }
-    .tab-score-explanation.green {
-        border-left-color: {score_colors["green"]};
-        background-color: rgba(82, 191, 144, 0.1);
-    }
-    .tab-content {{
-        margin-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        padding-top: 15px;
     }}
     
     /* Mobile responsiveness */
@@ -277,12 +207,13 @@ st.markdown(f"""
             font-size: 12px;
         }}
         
-        /* Adjust category cards for mobile */
-        .category-container {{
-            flex-direction: column;
+        /* Adjust character score for mobile */
+        .character-score {{
+            width: 80px;
+            height: 80px;
         }}
-        .category-card {{
-            width: 100%;
+        .score-value {{
+            font-size: 28px;
         }}
         
         /* Make content fit better on small screens */
@@ -369,17 +300,6 @@ def show_signin():
                         st.session_state["authenticated"] = True
                     else:
                         st.error("Invalid credentials. Please try again.")
-
-# Helper function to get color class based on score
-def get_score_color(score):
-    if score < 40:
-        return "red"
-    elif score < 60:
-        return "orange"
-    elif score < 80:
-        return "yellow"
-    else:
-        return "green"
 
 # --- FUNCTIONS ---
 def search_player_info(player_name, num_results=5):
@@ -469,29 +389,35 @@ Articles:
 
 Your character report must follow this EXACT format for proper parsing:
 
-1. OVERALL_SCORE
-[Provide an overall character score from 1-100 based on your analysis. Consider both on-field and off-field reputation, with higher scores indicating more positive perception. Also provide a one-sentence explanation of this score.]
+1. CHARACTER_SCORE
+[Provide a character score from 1-100 based on your analysis. Consider both on-field and off-field reputation, with higher scores indicating more positive perception. Also provide a one-sentence explanation of this score.]
 
-2. CATEGORY_SCORES
-[Provide scores from 1-100 for EXACTLY 5 key categories of player perception. Use only these five categories: "On-Field Performance", "Leadership", "Team Relationship", "Public Image", and "Off-Field Conduct". For each category, show a score and a brief explanation on the SAME line. Format precisely as: "Category Name: Score - Brief explanation". For example: "Leadership: 85 - Demonstrates excellent leadership qualities both on and off the field."]
-
-3. EXECUTIVE_SUMMARY
+2. EXECUTIVE_SUMMARY
 [Write a 1-2 paragraph executive summary of the player's overall public perception. Include approximate percentages for positive, negative, or mixed perception.]
 
-4. PERFORMANCE_DETAILS
-[Provide detailed analysis of the player's on-field performance perception with specific evidence and examples.]
+3. PERCEPTION_THEMES
+[Identify exactly 4 main themes in how the player is discussed. Number each theme and give it a clear title.]
 
-5. LEADERSHIP_DETAILS
-[Provide detailed analysis of the player's leadership qualities with specific evidence and examples.]
+4. THEME_1_DETAILS
+[Provide detailed analysis of the first theme with specific evidence and examples.]
 
-6. TEAM_RELATIONSHIP_DETAILS
-[Provide detailed analysis of the player's relationship with team members and organization with specific evidence and examples.]
+5. THEME_2_DETAILS
+[Provide detailed analysis of the second theme with specific evidence and examples.]
 
-7. PUBLIC_IMAGE_DETAILS
-[Provide detailed analysis of the player's public and media perception with specific evidence and examples.]
+6. THEME_3_DETAILS
+[Provide detailed analysis of the third theme with specific evidence and examples.]
 
-8. CONDUCT_DETAILS
-[Provide detailed analysis of the player's off-field conduct and character with specific evidence and examples.]
+7. THEME_4_DETAILS
+[Provide detailed analysis of the fourth theme with specific evidence and examples.]
+
+8. FAN_VS_MEDIA
+[Analyze differences between fan perception vs media perception with examples.]
+
+9. ON_VS_OFF_FIELD
+[Compare on-field reputation vs off-field character with specific examples.]
+
+10. STRENGTHS_WEAKNESSES
+[List the strongest and weakest aspects of the player's public image with evidence.]
 
 Make sure to use the exact section headers as shown above, as they will be used for parsing the response.
 """
@@ -515,49 +441,61 @@ Make sure to use the exact section headers as shown above, as they will be used 
         section_content = []
         
         for line in analysis_text.split('\n'):
-            if line.startswith('1. OVERALL_SCORE'):
-                current_section = 'OVERALL_SCORE'
+            if line.startswith('1. CHARACTER_SCORE'):
+                current_section = 'CHARACTER_SCORE'
                 continue
-            elif line.startswith('2. CATEGORY_SCORES'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'CATEGORY_SCORES'
-                section_content = []
-                continue
-            elif line.startswith('3. EXECUTIVE_SUMMARY'):
+            elif line.startswith('2. EXECUTIVE_SUMMARY'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
                 current_section = 'EXECUTIVE_SUMMARY'
                 section_content = []
                 continue
-            elif line.startswith('4. PERFORMANCE_DETAILS'):
+            elif line.startswith('3. PERCEPTION_THEMES'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'PERFORMANCE_DETAILS'
+                current_section = 'PERCEPTION_THEMES'
                 section_content = []
                 continue
-            elif line.startswith('5. LEADERSHIP_DETAILS'):
+            elif line.startswith('4. THEME_1_DETAILS'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'LEADERSHIP_DETAILS'
+                current_section = 'THEME_1_DETAILS'
                 section_content = []
                 continue
-            elif line.startswith('6. TEAM_RELATIONSHIP_DETAILS'):
+            elif line.startswith('5. THEME_2_DETAILS'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'TEAM_RELATIONSHIP_DETAILS'
+                current_section = 'THEME_2_DETAILS'
                 section_content = []
                 continue
-            elif line.startswith('7. PUBLIC_IMAGE_DETAILS'):
+            elif line.startswith('6. THEME_3_DETAILS'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'PUBLIC_IMAGE_DETAILS'
+                current_section = 'THEME_3_DETAILS'
                 section_content = []
                 continue
-            elif line.startswith('8. CONDUCT_DETAILS'):
+            elif line.startswith('7. THEME_4_DETAILS'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'CONDUCT_DETAILS'
+                current_section = 'THEME_4_DETAILS'
+                section_content = []
+                continue
+            elif line.startswith('8. FAN_VS_MEDIA'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'FAN_VS_MEDIA'
+                section_content = []
+                continue
+            elif line.startswith('9. ON_VS_OFF_FIELD'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'ON_VS_OFF_FIELD'
+                section_content = []
+                continue
+            elif line.startswith('10. STRENGTHS_WEAKNESSES'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'STRENGTHS_WEAKNESSES'
                 section_content = []
                 continue
             elif current_section:
@@ -566,16 +504,33 @@ Make sure to use the exact section headers as shown above, as they will be used 
         # Add the last section
         if current_section and section_content:
             sections[current_section] = '\n'.join(section_content).strip()
+        
+        # Extract theme titles from the PERCEPTION_THEMES section
+        theme_titles = []
+        if 'PERCEPTION_THEMES' in sections:
+            theme_lines = sections['PERCEPTION_THEMES'].split('\n')
+            for line in theme_lines:
+                if line.strip().startswith(('1.', '2.', '3.', '4.')):
+                    # Extract just the theme title without the number
+                    parts = line.strip().split(' ', 1)
+                    if len(parts) > 1:
+                        theme_titles.append(parts[1])
+                    else:
+                        theme_titles.append(f"Theme {len(theme_titles) + 1}")
+        
+        # Ensure we have 4 theme titles
+        while len(theme_titles) < 4:
+            theme_titles.append(f"Theme {len(theme_titles) + 1}")
             
-        # Extract overall score
-        overall_score = 70  # Default score
+        # Extract character score
+        character_score = 70  # Default score
         score_explanation = "Based on overall public perception"
-        if 'OVERALL_SCORE' in sections:
-            score_text = sections['OVERALL_SCORE']
+        if 'CHARACTER_SCORE' in sections:
+            score_text = sections['CHARACTER_SCORE']
             # Look for a number between 1-100
             score_match = re.search(r'\b([1-9][0-9]?|100)\b', score_text)
             if score_match:
-                overall_score = int(score_match.group(1))
+                character_score = int(score_match.group(1))
             
             # Get the explanation (usually a sentence after the score)
             sentences = re.split(r'(?<=[.!?])\s+', score_text)
@@ -584,66 +539,20 @@ Make sure to use the exact section headers as shown above, as they will be used 
                     if not re.search(r'\b([1-9][0-9]?|100)\b', sentence):
                         score_explanation = sentence.strip()
                         break
-        
-        # Extract category scores
-        category_scores = {
-            "On-Field Performance": {"score": 0, "explanation": ""},
-            "Leadership": {"score": 0, "explanation": ""},
-            "Team Relationship": {"score": 0, "explanation": ""},
-            "Public Image": {"score": 0, "explanation": ""},
-            "Off-Field Conduct": {"score": 0, "explanation": ""}
-        }
-        
-        if 'CATEGORY_SCORES' in sections:
-            category_lines = sections['CATEGORY_SCORES'].split('\n')
-            for line in category_lines:
-                line = line.strip()
-                if line and ":" in line:
-                    # Try to extract category, score and explanation
-                    category_match = re.match(r'([^:]+):\s*(\d+)\s*-\s*(.+)', line)
-                    if category_match:
-                        category = category_match.group(1).strip()
-                        score = int(category_match.group(2))
-                        explanation = category_match.group(3).strip()
-                        
-                        # Match to our predefined categories (fuzzy matching)
-                        if "field" in category.lower() and ("performance" in category.lower() or "skill" in category.lower()):
-                            category_scores["On-Field Performance"]["score"] = score
-                            category_scores["On-Field Performance"]["explanation"] = explanation
-                        elif "leadership" in category.lower() or "lead" in category.lower():
-                            category_scores["Leadership"]["score"] = score
-                            category_scores["Leadership"]["explanation"] = explanation
-                        elif "team" in category.lower() or "relationship" in category.lower() or "teammate" in category.lower():
-                            category_scores["Team Relationship"]["score"] = score
-                            category_scores["Team Relationship"]["explanation"] = explanation
-                        elif "public" in category.lower() or "image" in category.lower() or "media" in category.lower():
-                            category_scores["Public Image"]["score"] = score
-                            category_scores["Public Image"]["explanation"] = explanation
-                        elif "conduct" in category.lower() or "off-field" in category.lower() or "character" in category.lower():
-                            category_scores["Off-Field Conduct"]["score"] = score
-                            category_scores["Off-Field Conduct"]["explanation"] = explanation
-        
-        # Set default scores for any missing categories
-        for category in category_scores:
-            if category_scores[category]["score"] == 0:
-                category_scores[category]["score"] = 65
-                category_scores[category]["explanation"] = f"Default score for {category}."
-                
-        # Create objects for the detailed sections
-        details = {
-            "performance": sections.get('PERFORMANCE_DETAILS', 'No details available.'),
-            "leadership": sections.get('LEADERSHIP_DETAILS', 'No details available.'),
-            "team_relationship": sections.get('TEAM_RELATIONSHIP_DETAILS', 'No details available.'),
-            "public_image": sections.get('PUBLIC_IMAGE_DETAILS', 'No details available.'),
-            "conduct": sections.get('CONDUCT_DETAILS', 'No details available.')
-        }
             
         return {
-            'overall_score': overall_score,
+            'character_score': character_score,
             'score_explanation': score_explanation,
-            'category_scores': category_scores,
             'executive_summary': sections.get('EXECUTIVE_SUMMARY', ''),
-            'details': details,
+            'perception_themes': sections.get('PERCEPTION_THEMES', ''),
+            'theme_1': sections.get('THEME_1_DETAILS', ''),
+            'theme_2': sections.get('THEME_2_DETAILS', ''),
+            'theme_3': sections.get('THEME_3_DETAILS', ''),
+            'theme_4': sections.get('THEME_4_DETAILS', ''),
+            'fan_vs_media': sections.get('FAN_VS_MEDIA', ''),
+            'on_vs_off_field': sections.get('ON_VS_OFF_FIELD', ''),
+            'strengths_weaknesses': sections.get('STRENGTHS_WEAKNESSES', ''),
+            'theme_titles': theme_titles,
             'raw_data': search_results
         }
         
@@ -719,20 +628,17 @@ if analyze_button:
     # Display results
     st.markdown(f"## Player Report: {player_name}")
     
-    # Display overall character score
-    overall_score = analysis_result['overall_score']
-    overall_color = get_score_color(overall_score)
-    
+    # Display character score
     col1, col2 = st.columns([1, 3])
     with col1:
-        # Create a circular score display with the appropriate color
+        # Create a circular score display
         st.markdown(
             f"""
             <div class="character-score-container">
-                <div class="character-score" style="background: linear-gradient(to right, {score_colors[overall_color]}, {score_colors[overall_color]}CC);">
-                    <span class="score-value">{overall_score}</span>
+                <div class="character-score">
+                    <span class="score-value">{analysis_result['character_score']}</span>
                 </div>
-                <div class="score-label">Overall Character</div>
+                <div class="score-label">Character Score</div>
             </div>
             """, 
             unsafe_allow_html=True
@@ -751,72 +657,41 @@ if analyze_button:
     st.markdown(analysis_result['executive_summary'])
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # Tabbed interface for the detailed sections with scores
-    categories = {
-        "Performance": {
-            "content": analysis_result['details']['performance'],
-            "score": analysis_result['category_scores']["On-Field Performance"]["score"],
-            "explanation": analysis_result['category_scores']["On-Field Performance"]["explanation"]
-        },
-        "Leadership": {
-            "content": analysis_result['details']['leadership'],
-            "score": analysis_result['category_scores']["Leadership"]["score"],
-            "explanation": analysis_result['category_scores']["Leadership"]["explanation"]
-        },
-        "Team Relations": {
-            "content": analysis_result['details']['team_relationship'],
-            "score": analysis_result['category_scores']["Team Relationship"]["score"],
-            "explanation": analysis_result['category_scores']["Team Relationship"]["explanation"]
-        },
-        "Public Image": {
-            "content": analysis_result['details']['public_image'],
-            "score": analysis_result['category_scores']["Public Image"]["score"],
-            "explanation": analysis_result['category_scores']["Public Image"]["explanation"]
-        },
-        "Conduct": {
-            "content": analysis_result['details']['conduct'],
-            "score": analysis_result['category_scores']["Off-Field Conduct"]["score"],
-            "explanation": analysis_result['category_scores']["Off-Field Conduct"]["explanation"]
-        }
-    }
+    # Tabbed interface for the themes
+    theme_tabs = st.tabs([
+        analysis_result['theme_titles'][0], 
+        analysis_result['theme_titles'][1], 
+        analysis_result['theme_titles'][2], 
+        analysis_result['theme_titles'][3],
+        "Fan vs Media",
+        "On/Off Field",
+        "Strengths"
+    ])
     
-    # Create tab names with scores
-    tab_names = []
-    for category, data in categories.items():
-        tab_names.append(category)
-    
-    category_tabs = st.tabs(tab_names)
-    
-    # Fill each tab with its content including score
-    for i, (category, data) in enumerate(categories.items()):
-        score = data["score"]
-        explanation = data["explanation"]
-        content = data["content"]
-        color_class = get_score_color(score)
+    # Fill each tab with its content
+    with theme_tabs[0]:
+        st.markdown(analysis_result['theme_1'])
         
-        with category_tabs[i]:
-            # Display score in this tab
-            col1, col2 = st.columns([1, 3])
-            with col1:
-                st.markdown(
-                    f"""
-                    <div class="tab-score-container">
-                        <div class="category-score-circle {color_class}">
-                            <span class="tab-score-value">{score}</span>
-                        </div>
-                    </div>
-                    """, 
-                    unsafe_allow_html=True
-                )
-            with col2:
-                st.markdown(f"<div class='tab-score-explanation {color_class}'>", unsafe_allow_html=True)
-                st.markdown(f"**{explanation}**")
-                st.markdown("</div>", unsafe_allow_html=True)
-            
-            # Display content
-            st.markdown("<div class='tab-content'>", unsafe_allow_html=True)
-            st.markdown(content)
-            st.markdown("</div>", unsafe_allow_html=True)
+    with theme_tabs[1]:
+        st.markdown(analysis_result['theme_2'])
+        
+    with theme_tabs[2]:
+        st.markdown(analysis_result['theme_3'])
+        
+    with theme_tabs[3]:
+        st.markdown(analysis_result['theme_4'])
+        
+    with theme_tabs[4]:
+        st.markdown("### Fan vs Media Perception")
+        st.markdown(analysis_result['fan_vs_media'])
+        
+    with theme_tabs[5]:
+        st.markdown("### On-Field vs Off-Field Reputation")
+        st.markdown(analysis_result['on_vs_off_field'])
+        
+    with theme_tabs[6]:
+        st.markdown("### Reputation Strengths & Weaknesses")
+        st.markdown(analysis_result['strengths_weaknesses'])
     
     st.markdown("</div>", unsafe_allow_html=True)
     
