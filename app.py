@@ -452,28 +452,25 @@ Articles:
 
 Your character report must follow this EXACT format for proper parsing:
 
-1. OVERALL_SCORE
-[Provide an overall character score from 1-100 based on your analysis. Consider both on-field and off-field reputation, with higher scores indicating more positive perception. Also provide a one-sentence explanation of this score.]
-
-2. CATEGORY_SCORES
+1. CATEGORY_SCORES
 [Provide scores from 1-100 for EXACTLY 5 key categories of player perception. Use only these five categories: "On-Field Performance", "Leadership", "Team Relationship", "Public Image", and "Off-Field Conduct". For each category, show a score and a brief explanation on the SAME line. Format precisely as: "Category Name: Score - Brief explanation". For example: "Leadership: 85 - Demonstrates excellent leadership qualities both on and off the field."]
 
-3. EXECUTIVE_SUMMARY
-[Write a 1-2 paragraph executive summary of the player's overall public perception. Include approximate percentages for positive, negative, or mixed perception.]
+2. EXECUTIVE_SUMMARY
+[Write a 1-2 paragraph summary that integrates insights from all five categories. Highlight key strengths and areas for improvement based on the category scores. Make connections between different categories where appropriate.]
 
-4. PERFORMANCE_DETAILS
+3. PERFORMANCE_DETAILS
 [Provide detailed analysis of the player's on-field performance perception with specific evidence and examples.]
 
-5. LEADERSHIP_DETAILS
+4. LEADERSHIP_DETAILS
 [Provide detailed analysis of the player's leadership qualities with specific evidence and examples.]
 
-6. TEAM_RELATIONSHIP_DETAILS
+5. TEAM_RELATIONSHIP_DETAILS
 [Provide detailed analysis of the player's relationship with team members and organization with specific evidence and examples.]
 
-7. PUBLIC_IMAGE_DETAILS
+6. PUBLIC_IMAGE_DETAILS
 [Provide detailed analysis of the player's public and media perception with specific evidence and examples.]
 
-8. CONDUCT_DETAILS
+7. CONDUCT_DETAILS
 [Provide detailed analysis of the player's off-field conduct and character with specific evidence and examples.]
 
 Make sure to use the exact section headers as shown above, as they will be used for parsing the response.
@@ -498,46 +495,40 @@ Make sure to use the exact section headers as shown above, as they will be used 
         section_content = []
         
         for line in analysis_text.split('\n'):
-            if line.startswith('1. OVERALL_SCORE'):
-                current_section = 'OVERALL_SCORE'
-                continue
-            elif line.startswith('2. CATEGORY_SCORES'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
+            if line.startswith('1. CATEGORY_SCORES'):
                 current_section = 'CATEGORY_SCORES'
-                section_content = []
                 continue
-            elif line.startswith('3. EXECUTIVE_SUMMARY'):
+            elif line.startswith('2. EXECUTIVE_SUMMARY'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
                 current_section = 'EXECUTIVE_SUMMARY'
                 section_content = []
                 continue
-            elif line.startswith('4. PERFORMANCE_DETAILS'):
+            elif line.startswith('3. PERFORMANCE_DETAILS'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
                 current_section = 'PERFORMANCE_DETAILS'
                 section_content = []
                 continue
-            elif line.startswith('5. LEADERSHIP_DETAILS'):
+            elif line.startswith('4. LEADERSHIP_DETAILS'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
                 current_section = 'LEADERSHIP_DETAILS'
                 section_content = []
                 continue
-            elif line.startswith('6. TEAM_RELATIONSHIP_DETAILS'):
+            elif line.startswith('5. TEAM_RELATIONSHIP_DETAILS'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
                 current_section = 'TEAM_RELATIONSHIP_DETAILS'
                 section_content = []
                 continue
-            elif line.startswith('7. PUBLIC_IMAGE_DETAILS'):
+            elif line.startswith('6. PUBLIC_IMAGE_DETAILS'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
                 current_section = 'PUBLIC_IMAGE_DETAILS'
                 section_content = []
                 continue
-            elif line.startswith('8. CONDUCT_DETAILS'):
+            elif line.startswith('7. CONDUCT_DETAILS'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
                 current_section = 'CONDUCT_DETAILS'
@@ -549,24 +540,6 @@ Make sure to use the exact section headers as shown above, as they will be used 
         # Add the last section
         if current_section and section_content:
             sections[current_section] = '\n'.join(section_content).strip()
-            
-        # Extract overall score
-        overall_score = 70  # Default score
-        score_explanation = "Based on overall public perception"
-        if 'OVERALL_SCORE' in sections:
-            score_text = sections['OVERALL_SCORE']
-            # Look for a number between 1-100
-            score_match = re.search(r'\b([1-9][0-9]?|100)\b', score_text)
-            if score_match:
-                overall_score = int(score_match.group(1))
-            
-            # Get the explanation (usually a sentence after the score)
-            sentences = re.split(r'(?<=[.!?])\s+', score_text)
-            if len(sentences) > 0:
-                for sentence in sentences:
-                    if not re.search(r'\b([1-9][0-9]?|100)\b', sentence):
-                        score_explanation = sentence.strip()
-                        break
         
         # Extract category scores
         category_scores = {
@@ -611,6 +584,12 @@ Make sure to use the exact section headers as shown above, as they will be used 
             if category_scores[category]["score"] == 0:
                 category_scores[category]["score"] = 65
                 category_scores[category]["explanation"] = f"Default score for {category}."
+                
+        # Calculate overall score as the average of category scores
+        overall_score = round(sum(category_scores[category]["score"] for category in category_scores) / len(category_scores))
+        
+        # Generate score explanation based on average score
+        score_explanation = f"Average of all five character categories: {', '.join(category_scores.keys())}."
                 
         # Create objects for the detailed sections
         details = {
