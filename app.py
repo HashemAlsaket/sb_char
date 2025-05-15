@@ -48,38 +48,6 @@ st.markdown(f"""
         color: {accent_color};
     }}
     
-    /* SIGN IN BUTTON - VERY CLEAR */
-    button[kind="primaryFormSubmit"] {{
-        background-color: {primary_color} !important;
-        color: #000000 !important;
-        border: 2px solid white !important;
-        padding: 15px 20px !important;
-        font-size: 18px !important;
-        font-weight: 800 !important;
-        letter-spacing: 1px !important;
-        margin-top: 15px !important;
-        text-transform: uppercase !important;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
-        position: relative !important;
-    }}
-    button[kind="primaryFormSubmit"]::after {{
-        content: "→" !important;
-        margin-left: 10px !important;
-        font-size: 20px !important;
-    }}
-    button[kind="primaryFormSubmit"]:hover {{
-        background-color: {secondary_color} !important;
-        color: {accent_color} !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4) !important;
-    }}
-    
-    /* Make sure form submit button text is visible */
-    button[kind="primaryFormSubmit"] div {{
-        visibility: visible !important;
-        color: #000000 !important;
-    }}
-    
     /* Text elements */
     h1, h2, h3, h4, h5, h6 {{
         color: {secondary_color};
@@ -337,20 +305,48 @@ def show_signin():
             user = st.text_input("Email")
             pw = st.text_input("Password", type="password")
             
-            # Custom styled sign-in button with inline styles to ensure visibility
+            # Plain high-contrast button style
             st.markdown("""
             <style>
-            /* Ensure the text inside the button is visible */
-            form button[kind="primaryFormSubmit"] span {
+            /* Simple, high-contrast button with no animations or effects */
+            button[kind="primaryFormSubmit"] {
+                background-color: #00c2cb !important;
                 color: #000000 !important;
-                visibility: visible !important;
+                font-weight: bold !important;
+                font-size: 18px !important;
+                padding: 12px 20px !important;
+                border: 2px solid #ffffff !important;
+                border-radius: 4px !important;
+                margin-top: 20px !important;
+                cursor: pointer !important;
+                width: 100% !important;
+                text-transform: uppercase !important;
+                letter-spacing: 1px !important;
+                box-shadow: none !important;
+                transform: none !important;
+                transition: none !important;
+            }
+            
+            /* No hover effects or animations */
+            button[kind="primaryFormSubmit"]:hover {
+                background-color: #00c2cb !important;
+                color: #000000 !important;
+                border: 2px solid #ffffff !important;
+                transform: none !important;
+                box-shadow: none !important;
+            }
+            
+            /* Make sure text is visible */
+            button[kind="primaryFormSubmit"] div, 
+            button[kind="primaryFormSubmit"] span {
+                color: #000000 !important;
                 opacity: 1 !important;
-                display: inline-block !important;
+                visibility: visible !important;
             }
             </style>
             """, unsafe_allow_html=True)
             
-            # Large, clearly labeled button with custom label
+            # Simple button with no additional text or arrow
             login_button = st.form_submit_button("SIGN IN", use_container_width=True)
 
             if login_button:
