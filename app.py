@@ -428,8 +428,8 @@ def search_player_info(player_name, num_results=50):
         st.error(f"Error gathering information: {str(e)}")
         return []
 
-def analyze_with_openai(player_name, search_results):
-    """Analyze player perception using OpenAI"""
+def analyze_with_openai(player_name, search_results, max_retries=2):
+    """Analyze player perception using OpenAI with automatic retries"""
     # Set OpenAI API key
     openai.api_key = st.session_state["openai_api_key"]
     
@@ -478,144 +478,216 @@ Your character report must follow this EXACT format for proper parsing:
 
 Make sure to use the exact section headers as shown above, as they will be used for parsing the response.
 """
-        
-    try:
-        # Call OpenAI API
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an expert NFL analyst specializing in player perception and reputation analysis."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5
-        )
-        
-        analysis_text = response.choices[0].message.content
-        
-        # Parse the sections
-        sections = {}
-        current_section = None
-        section_content = []
-        
-        for line in analysis_text.split('\n'):
-            if line.startswith('1. CATEGORY_SCORES'):
-                current_section = 'CATEGORY_SCORES'
-                continue
-            elif line.startswith('2. EXECUTIVE_SUMMARY'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'EXECUTIVE_SUMMARY'
-                section_content = []
-                continue
-            elif line.startswith('3. PERFORMANCE_DETAILS'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'PERFORMANCE_DETAILS'
-                section_content = []
-                continue
-            elif line.startswith('4. LEADERSHIP_DETAILS'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'LEADERSHIP_DETAILS'
-                section_content = []
-                continue
-            elif line.startswith('5. TEAM_RELATIONSHIP_DETAILS'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'TEAM_RELATIONSHIP_DETAILS'
-                section_content = []
-                continue
-            elif line.startswith('6. PUBLIC_IMAGE_DETAILS'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'PUBLIC_IMAGE_DETAILS'
-                section_content = []
-                continue
-            elif line.startswith('7. CONDUCT_DETAILS'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'CONDUCT_DETAILS'
-                section_content = []
-                continue
-            elif current_section:
-                section_content.append(line)
-        
-        # Add the last section
-        if current_section and section_content:
-            sections[current_section] = '\n'.join(section_content).strip()
-        
-        # Extract category scores
-        category_scores = {
-            "On-Field Performance": {"score": 0, "explanation": ""},
-            "Leadership": {"score": 0, "explanation": ""},
-            "Team Relationship": {"score": 0, "explanation": ""},
-            "Public Image": {"score": 0, "explanation": ""},
-            "Off-Field Conduct": {"score": 0, "explanation": ""}
-        }
-        
-        if 'CATEGORY_SCORES' in sections:
-            category_lines = sections['CATEGORY_SCORES'].split('\n')
-            for line in category_lines:
-                line = line.strip()
-                if line and ":" in line:
-                    # Try to extract category, score and explanation
-                    category_match = re.match(r'([^:]+):\s*(\d+)\s*-\s*(.+)', line)
-                    if category_match:
-                        category = category_match.group(1).strip()
-                        score = int(category_match.group(2))
-                        explanation = category_match.group(3).strip()
-                        
-                        # Match to our predefined categories (fuzzy matching)
-                        if "field" in category.lower() and ("performance" in category.lower() or "skill" in category.lower()):
-                            category_scores["On-Field Performance"]["score"] = score
-                            category_scores["On-Field Performance"]["explanation"] = explanation
-                        elif "leadership" in category.lower() or "lead" in category.lower():
-                            category_scores["Leadership"]["score"] = score
-                            category_scores["Leadership"]["explanation"] = explanation
-                        elif "team" in category.lower() or "relationship" in category.lower() or "teammate" in category.lower():
-                            category_scores["Team Relationship"]["score"] = score
-                            category_scores["Team Relationship"]["explanation"] = explanation
-                        elif "public" in category.lower() or "image" in category.lower() or "media" in category.lower():
-                            category_scores["Public Image"]["score"] = score
-                            category_scores["Public Image"]["explanation"] = explanation
-                        elif "conduct" in category.lower() or "off-field" in category.lower() or "character" in category.lower():
-                            category_scores["Off-Field Conduct"]["score"] = score
-                            category_scores["Off-Field Conduct"]["explanation"] = explanation
-        
-        # Set default scores for any missing categories
-        for category in category_scores:
-            if category_scores[category]["score"] == 0:
-                category_scores[category]["score"] = 65
-                category_scores[category]["explanation"] = f"Default score for {category}."
-                
-        # Calculate overall score as the average of category scores
-        overall_score = round(sum(category_scores[category]["score"] for category in category_scores) / len(category_scores))
-        
-        # Generate score explanation based on average score
-        score_explanation = f"Average of all five character categories: {', '.join(category_scores.keys())}."
-                
-        # Create objects for the detailed sections
-        details = {
-            "performance": sections.get('PERFORMANCE_DETAILS', 'No details available.'),
-            "leadership": sections.get('LEADERSHIP_DETAILS', 'No details available.'),
-            "team_relationship": sections.get('TEAM_RELATIONSHIP_DETAILS', 'No details available.'),
-            "public_image": sections.get('PUBLIC_IMAGE_DETAILS', 'No details available.'),
-            "conduct": sections.get('CONDUCT_DETAILS', 'No details available.')
-        }
+    
+    retries = 0
+    while retries <= max_retries:
+        try:
+            # Call OpenAI API
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an expert NFL analyst specializing in player perception and reputation analysis."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5
+            )
             
-        return {
-            'overall_score': overall_score,
-            'score_explanation': score_explanation,
-            'category_scores': category_scores,
-            'executive_summary': sections.get('EXECUTIVE_SUMMARY', ''),
-            'details': details,
-            'raw_data': search_results
-        }
-        
-    except Exception as e:
-        return {
-            'error': str(e)
-        }
+            analysis_text = response.choices[0].message.content
+            
+            # Parse the sections
+            sections = {}
+            current_section = None
+            section_content = []
+            
+            for line in analysis_text.split('\n'):
+                if line.startswith('1. CATEGORY_SCORES'):
+                    current_section = 'CATEGORY_SCORES'
+                    continue
+                elif line.startswith('2. EXECUTIVE_SUMMARY'):
+                    if current_section:
+                        sections[current_section] = '\n'.join(section_content).strip()
+                    current_section = 'EXECUTIVE_SUMMARY'
+                    section_content = []
+                    continue
+                elif line.startswith('3. PERFORMANCE_DETAILS'):
+                    if current_section:
+                        sections[current_section] = '\n'.join(section_content).strip()
+                    current_section = 'PERFORMANCE_DETAILS'
+                    section_content = []
+                    continue
+                elif line.startswith('4. LEADERSHIP_DETAILS'):
+                    if current_section:
+                        sections[current_section] = '\n'.join(section_content).strip()
+                    current_section = 'LEADERSHIP_DETAILS'
+                    section_content = []
+                    continue
+                elif line.startswith('5. TEAM_RELATIONSHIP_DETAILS'):
+                    if current_section:
+                        sections[current_section] = '\n'.join(section_content).strip()
+                    current_section = 'TEAM_RELATIONSHIP_DETAILS'
+                    section_content = []
+                    continue
+                elif line.startswith('6. PUBLIC_IMAGE_DETAILS'):
+                    if current_section:
+                        sections[current_section] = '\n'.join(section_content).strip()
+                    current_section = 'PUBLIC_IMAGE_DETAILS'
+                    section_content = []
+                    continue
+                elif line.startswith('7. CONDUCT_DETAILS'):
+                    if current_section:
+                        sections[current_section] = '\n'.join(section_content).strip()
+                    current_section = 'CONDUCT_DETAILS'
+                    section_content = []
+                    continue
+                elif current_section:
+                    section_content.append(line)
+            
+            # Add the last section
+            if current_section and section_content:
+                sections[current_section] = '\n'.join(section_content).strip()
+            
+            # Extract category scores
+            category_scores = {
+                "On-Field Performance": {"score": 0, "explanation": ""},
+                "Leadership": {"score": 0, "explanation": ""},
+                "Team Relationship": {"score": 0, "explanation": ""},
+                "Public Image": {"score": 0, "explanation": ""},
+                "Off-Field Conduct": {"score": 0, "explanation": ""}
+            }
+            
+            if 'CATEGORY_SCORES' in sections:
+                category_lines = sections['CATEGORY_SCORES'].split('\n')
+                for line in category_lines:
+                    line = line.strip()
+                    if line and ":" in line:
+                        # Try to extract category, score and explanation
+                        category_match = re.match(r'([^:]+):\s*(\d+)\s*-\s*(.+)', line)
+                        if category_match:
+                            category = category_match.group(1).strip()
+                            score = int(category_match.group(2))
+                            explanation = category_match.group(3).strip()
+                            
+                            # Match to our predefined categories (fuzzy matching)
+                            if "field" in category.lower() and ("performance" in category.lower() or "skill" in category.lower()):
+                                category_scores["On-Field Performance"]["score"] = score
+                                category_scores["On-Field Performance"]["explanation"] = explanation
+                            elif "leadership" in category.lower() or "lead" in category.lower():
+                                category_scores["Leadership"]["score"] = score
+                                category_scores["Leadership"]["explanation"] = explanation
+                            elif "team" in category.lower() or "relationship" in category.lower() or "teammate" in category.lower():
+                                category_scores["Team Relationship"]["score"] = score
+                                category_scores["Team Relationship"]["explanation"] = explanation
+                            elif "public" in category.lower() or "image" in category.lower() or "media" in category.lower():
+                                category_scores["Public Image"]["score"] = score
+                                category_scores["Public Image"]["explanation"] = explanation
+                            elif "conduct" in category.lower() or "off-field" in category.lower() or "character" in category.lower():
+                                category_scores["Off-Field Conduct"]["score"] = score
+                                category_scores["Off-Field Conduct"]["explanation"] = explanation
+            
+            # Set default scores for any missing categories
+            for category in category_scores:
+                if category_scores[category]["score"] == 0:
+                    category_scores[category]["score"] = 65
+                    category_scores[category]["explanation"] = f"Default score for {category}."
+            
+            # Check if any of the detail sections is empty or "No details available"
+            details = {
+                "performance": sections.get('PERFORMANCE_DETAILS', 'No details available.'),
+                "leadership": sections.get('LEADERSHIP_DETAILS', 'No details available.'),
+                "team_relationship": sections.get('TEAM_RELATIONSHIP_DETAILS', 'No details available.'),
+                "public_image": sections.get('PUBLIC_IMAGE_DETAILS', 'No details available.'),
+                "conduct": sections.get('CONDUCT_DETAILS', 'No details available.')
+            }
+            
+            # Check if results are valid or need retry
+            missing_details = sum(1 for detail in details.values() if detail == 'No details available.')
+            if missing_details >= 3 and retries < max_retries:
+                # If too many sections are missing, retry
+                retries += 1
+                time.sleep(1)  # Short delay before retry
+                continue
+            
+            # Calculate overall score as the average of category scores
+            overall_score = round(sum(category_scores[category]["score"] for category in category_scores) / len(category_scores))
+            
+            # Generate score explanation based on average score
+            score_explanation = f"Average of all five character categories: {', '.join(category_scores.keys())}."
+                    
+            return {
+                'overall_score': overall_score,
+                'score_explanation': score_explanation,
+                'category_scores': category_scores,
+                'executive_summary': sections.get('EXECUTIVE_SUMMARY', ''),
+                'details': details,
+                'raw_data': search_results
+            }
+                
+        except Exception as e:
+            if retries < max_retries:
+                retries += 1
+                time.sleep(1)  # Short delay before retry
+            else:
+                return {
+                    'error': f"Analysis failed after {max_retries + 1} attempts: {str(e)}"
+                }
+    
+    # If we reach here, all retries have failed
+    return {
+        'error': f"Analysis failed after {max_retries + 1} attempts."
+    }
+
+# Function to process player report with built-in retries
+def process_player_report(player_name, max_retries=2):
+    """Process the full player report with automatic retries"""
+    
+    # Track retry attempts
+    retry_count = 0
+    
+    while retry_count <= max_retries:
+        with st.spinner(f"Generating comprehensive report for {player_name}{' (Retry attempt: ' + str(retry_count) + ')' if retry_count > 0 else ''}..."):
+            # Step 1: Search for player information
+            search_results = search_player_info(player_name)
+            
+            if not search_results:
+                # If search fails, increment retry count and try again if possible
+                if retry_count < max_retries:
+                    retry_count += 1
+                    time.sleep(1)
+                    continue
+                else:
+                    st.error(f"Unable to find sufficient information for {player_name}. Please check the spelling or try another player.")
+                    return None
+            
+            # Step 2: Analyze the search results with OpenAI (with its own retry mechanism)
+            analysis_result = analyze_with_openai(player_name, search_results)
+            
+            if "error" in analysis_result:
+                # If analysis fails, increment retry count and try again if possible
+                if retry_count < max_retries:
+                    retry_count += 1
+                    time.sleep(1)
+                    continue
+                else:
+                    st.error(f"Error generating report: {analysis_result['error']}")
+                    return None
+            
+            # Check for incomplete results
+            details = analysis_result['details']
+            missing_details = sum(1 for detail in details.values() if detail == 'No details available.')
+            
+            if missing_details >= 3:
+                # If too many sections are missing, retry if possible
+                if retry_count < max_retries:
+                    retry_count += 1
+                    time.sleep(1)
+                    continue
+            
+            # If we reach here, we have a successful result or have used all retries
+            return analysis_result
+    
+    # If we reach here, all retries have failed
+    st.error("Unable to generate a complete report after multiple attempts. Please try again.")
+    return None
 
 # --- AUTHENTICATION CHECK ---
 # Check authentication state
@@ -665,21 +737,13 @@ if analyze_button:
     if not api_keys_available:
         st.error("System configuration error. Please contact technical support.")
         st.stop()
-        
-    with st.spinner(f"Generating comprehensive report for {player_name}..."):
-        # Step 1: Search for player information (without showing technical details)
-        search_results = search_player_info(player_name)
-        
-        if not search_results:
-            st.error(f"Unable to find sufficient information for {player_name}. Please check the spelling or try another player.")
-            st.stop()
-        
-        # Step 2: Analyze the search results with OpenAI (without technical details)
-        analysis_result = analyze_with_openai(player_name, search_results)
-        
-        if "error" in analysis_result:
-            st.error(f"Error generating report: {analysis_result['error']}")
-            st.stop()
+    
+    # Use the new process_player_report function with automatic retries
+    analysis_result = process_player_report(player_name, max_retries=2)
+    
+    # If analysis failed after all retries, stop execution
+    if analysis_result is None:
+        st.stop()
     
     # Display results
     st.markdown(f"## Player Report: {player_name}")
@@ -781,7 +845,7 @@ if analyze_button:
     # Sources at the bottom in an expander for technical staff
     with st.expander("Sources and References", expanded=False):
         st.markdown("### Information Sources")
-        for i, result in enumerate(search_results):
+        for i, result in enumerate(analysis_result['raw_data']):
             st.markdown(f"**Source {i+1}:** {result.get('title', 'No title')}")
             if 'link' in result and result['link']:
                 st.markdown(f"[Link]({result['link']})")
