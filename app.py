@@ -234,6 +234,27 @@ st.markdown(f"""
         color: white;
     }}
     
+    /* Login instruction styles */
+    .login-instruction {{
+        margin-top: 20px;
+        padding: 12px 15px;
+        background-color: rgba(0, 194, 203, 0.2);
+        border-left: 3px solid {primary_color};
+        border-radius: 4px;
+        font-weight: 500;
+        text-align: center;
+        font-size: 16px;
+    }}
+    
+    /* Highlight Enter key in login instruction */
+    .key-highlight {{
+        background-color: rgba(255, 255, 255, 0.2);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        margin: 0 3px;
+    }}
+    
     /* Mobile responsiveness */
     @media (max-width: 768px) {{
         /* Adjust tab display */
@@ -305,51 +326,23 @@ def show_signin():
             user = st.text_input("Email")
             pw = st.text_input("Password", type="password")
             
-            # Plain high-contrast button style
+            # Add clear instruction to press Enter (instead of button)
+            st.markdown("<div class='login-instruction'>Press <span class='key-highlight'>Enter</span> to sign in</div>", unsafe_allow_html=True)
+            
+            # Hide the submit button (it will still work with Enter key)
             st.markdown("""
             <style>
-            /* Simple, high-contrast button with no animations or effects */
+            /* Hide the submit button but keep it functional */
             button[kind="primaryFormSubmit"] {
-                background-color: #00c2cb !important;
-                color: #000000 !important;
-                font-weight: bold !important;
-                font-size: 18px !important;
-                padding: 12px 20px !important;
-                border: 2px solid #ffffff !important;
-                border-radius: 4px !important;
-                margin-top: 20px !important;
-                cursor: pointer !important;
-                width: 100% !important;
-                text-transform: uppercase !important;
-                letter-spacing: 1px !important;
-                box-shadow: none !important;
-                transform: none !important;
-                transition: none !important;
-            }
-            
-            /* No hover effects or animations */
-            button[kind="primaryFormSubmit"]:hover {
-                background-color: #00c2cb !important;
-                color: #000000 !important;
-                border: 2px solid #ffffff !important;
-                transform: none !important;
-                box-shadow: none !important;
-            }
-            
-            /* Make sure text is visible */
-            button[kind="primaryFormSubmit"] div, 
-            button[kind="primaryFormSubmit"] span {
-                color: #000000 !important;
-                opacity: 1 !important;
-                visibility: visible !important;
+                display: none !important;
             }
             </style>
             """, unsafe_allow_html=True)
             
-            # Simple button with no additional text or arrow
-            login_button = st.form_submit_button("SIGN IN", use_container_width=True)
+            # This button is hidden but still works when user presses Enter
+            submitted = st.form_submit_button("SIGN IN")
 
-            if login_button:
+            if submitted:
                 # Use appropriate credential checking based on your setup
                 try:
                     if user == st.secrets["credentials"]["username"] and pw == st.secrets["credentials"]["password"]:
