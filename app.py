@@ -74,6 +74,12 @@ st.markdown(f"""
         box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4) !important;
     }}
     
+    /* Make sure form submit button text is visible */
+    button[kind="primaryFormSubmit"] div {{
+        visibility: visible !important;
+        color: #000000 !important;
+    }}
+    
     /* Text elements */
     h1, h2, h3, h4, h5, h6 {{
         color: {secondary_color};
@@ -331,10 +337,21 @@ def show_signin():
             user = st.text_input("Email")
             pw = st.text_input("Password", type="password")
             
-            # Large, clearly labeled button
-            st.markdown("<div style='padding: 20px 0;'>", unsafe_allow_html=True)
+            # Custom styled sign-in button with inline styles to ensure visibility
+            st.markdown("""
+            <style>
+            /* Ensure the text inside the button is visible */
+            form button[kind="primaryFormSubmit"] span {
+                color: #000000 !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                display: inline-block !important;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            # Large, clearly labeled button with custom label
             login_button = st.form_submit_button("SIGN IN", use_container_width=True)
-            st.markdown("</div>", unsafe_allow_html=True)
 
             if login_button:
                 # Use appropriate credential checking based on your setup
