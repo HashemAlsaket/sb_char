@@ -335,9 +335,6 @@ def show_signin():
             st.markdown("<div style='padding: 20px 0;'>", unsafe_allow_html=True)
             login_button = st.form_submit_button("SIGN IN", use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
-            
-            # Additional text to clarify button
-            st.markdown("<p style='text-align: center; font-size: 12px; margin-top: -10px;'>Click the button above to sign in</p>", unsafe_allow_html=True)
 
             if login_button:
                 # Use appropriate credential checking based on your setup
