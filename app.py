@@ -8,7 +8,7 @@ import openai
 import re
 
 # --- SETUP ---
-st.set_page_config(page_title="Player Perception Dashboard", layout="wide")
+st.set_page_config(page_title="Player Character Measurement", layout="wide")
 
 # --- CUSTOM THEME ---
 primary_color = "#00c2cb"  # Light blue/teal from logo
@@ -199,6 +199,24 @@ st.markdown(f"""
         border-left: 3px solid {primary_color};
     }}
     
+    /* Color coded tabs based on score */
+    .score-red {{
+        background-color: #E53935 !important;
+        color: white !important;
+    }}
+    .score-orange {{
+        background-color: #FB8C00 !important;
+        color: black !important;
+    }}
+    .score-yellow {{
+        background-color: #FFD600 !important;
+        color: black !important;
+    }}
+    .score-green {{
+        background-color: #43A047 !important;
+        color: white !important;
+    }}
+    
     /* Mobile responsiveness */
     @media (max-width: 768px) {{
         /* Adjust tab display */
@@ -269,7 +287,7 @@ def show_signin():
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
         st.image("char_img.png", width=100)
-        st.markdown("<h2 style='text-align: center; color: #00c2cb; margin-bottom: 20px;'>Player Perception Dashboard</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; color: #00c2cb; margin-bottom: 20px;'>Player Character Measurement</h2>", unsafe_allow_html=True)
         
         # Simple form with clear instructions
         st.markdown("<p style='text-align: center; margin-bottom: 25px;'>Enter your credentials to access the dashboard</p>", unsafe_allow_html=True)
@@ -300,6 +318,17 @@ def show_signin():
                         st.session_state["authenticated"] = True
                     else:
                         st.error("Invalid credentials. Please try again.")
+
+# Function to get score color class
+def get_score_color_class(score):
+    if score < 40:
+        return "score-red"
+    elif score < 60:
+        return "score-orange"
+    elif score < 80:
+        return "score-yellow"
+    else:
+        return "score-green"
 
 # --- FUNCTIONS ---
 def search_player_info(player_name, num_results=5):
@@ -382,7 +411,7 @@ def analyze_with_openai(player_name, search_results):
     
     # Create the prompt for the LLM
     prompt = f"""
-You are analyzing news coverage and information for NFL player {player_name}. Given the following articles, create a detailed character report.
+You are analyzing news coverage and information for NFL player {player_name}. Given the following articles, create a detailed character report with a focus on the 5 most important character measurements.
 
 Articles:
 {articles_text}
@@ -395,29 +424,20 @@ Your character report must follow this EXACT format for proper parsing:
 2. EXECUTIVE_SUMMARY
 [Write a 1-2 paragraph executive summary of the player's overall public perception. Include approximate percentages for positive, negative, or mixed perception.]
 
-3. PERCEPTION_THEMES
-[Identify exactly 4 main themes in how the player is discussed. Number each theme and give it a clear title.]
+3. CHARACTER_CATEGORY_1
+[Title this category with one of the 5 most important character measurements - for example "Leadership", "Community Impact", "Off-Field Behavior", "Integrity", "Work Ethic", "Teamwork", etc. Then provide detailed analysis with specific evidence and examples. Assign this category a score from 1-100.]
 
-4. THEME_1_DETAILS
-[Provide detailed analysis of the first theme with specific evidence and examples.]
+4. CHARACTER_CATEGORY_2
+[Title this category with the second most important character measurement. Provide detailed analysis with specific evidence and examples. Assign this category a score from 1-100.]
 
-5. THEME_2_DETAILS
-[Provide detailed analysis of the second theme with specific evidence and examples.]
+5. CHARACTER_CATEGORY_3
+[Title this category with the third most important character measurement. Provide detailed analysis with specific evidence and examples. Assign this category a score from 1-100.]
 
-6. THEME_3_DETAILS
-[Provide detailed analysis of the third theme with specific evidence and examples.]
+6. CHARACTER_CATEGORY_4
+[Title this category with the fourth most important character measurement. Provide detailed analysis with specific evidence and examples. Assign this category a score from 1-100.]
 
-7. THEME_4_DETAILS
-[Provide detailed analysis of the fourth theme with specific evidence and examples.]
-
-8. FAN_VS_MEDIA
-[Analyze differences between fan perception vs media perception with examples.]
-
-9. ON_VS_OFF_FIELD
-[Compare on-field reputation vs off-field character with specific examples.]
-
-10. STRENGTHS_WEAKNESSES
-[List the strongest and weakest aspects of the player's public image with evidence.]
+7. CHARACTER_CATEGORY_5
+[Title this category with the fifth most important character measurement. Provide detailed analysis with specific evidence and examples. Assign this category a score from 1-100.]
 
 Make sure to use the exact section headers as shown above, as they will be used for parsing the response.
 """
@@ -427,7 +447,7 @@ Make sure to use the exact section headers as shown above, as they will be used 
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are an expert NFL analyst specializing in player perception and reputation analysis."},
+                {"role": "system", "content": "You are an expert NFL analyst specializing in player perception and character assessment."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.5
@@ -439,6 +459,7 @@ Make sure to use the exact section headers as shown above, as they will be used 
         sections = {}
         current_section = None
         section_content = []
+        category_scores = {}  # To store scores for each category
         
         for line in analysis_text.split('\n'):
             if line.startswith('1. CHARACTER_SCORE'):
@@ -450,52 +471,34 @@ Make sure to use the exact section headers as shown above, as they will be used 
                 current_section = 'EXECUTIVE_SUMMARY'
                 section_content = []
                 continue
-            elif line.startswith('3. PERCEPTION_THEMES'):
+            elif line.startswith('3. CHARACTER_CATEGORY_1'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'PERCEPTION_THEMES'
+                current_section = 'CHARACTER_CATEGORY_1'
                 section_content = []
                 continue
-            elif line.startswith('4. THEME_1_DETAILS'):
+            elif line.startswith('4. CHARACTER_CATEGORY_2'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'THEME_1_DETAILS'
+                current_section = 'CHARACTER_CATEGORY_2'
                 section_content = []
                 continue
-            elif line.startswith('5. THEME_2_DETAILS'):
+            elif line.startswith('5. CHARACTER_CATEGORY_3'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'THEME_2_DETAILS'
+                current_section = 'CHARACTER_CATEGORY_3'
                 section_content = []
                 continue
-            elif line.startswith('6. THEME_3_DETAILS'):
+            elif line.startswith('6. CHARACTER_CATEGORY_4'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'THEME_3_DETAILS'
+                current_section = 'CHARACTER_CATEGORY_4'
                 section_content = []
                 continue
-            elif line.startswith('7. THEME_4_DETAILS'):
+            elif line.startswith('7. CHARACTER_CATEGORY_5'):
                 if current_section:
                     sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'THEME_4_DETAILS'
-                section_content = []
-                continue
-            elif line.startswith('8. FAN_VS_MEDIA'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'FAN_VS_MEDIA'
-                section_content = []
-                continue
-            elif line.startswith('9. ON_VS_OFF_FIELD'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'ON_VS_OFF_FIELD'
-                section_content = []
-                continue
-            elif line.startswith('10. STRENGTHS_WEAKNESSES'):
-                if current_section:
-                    sections[current_section] = '\n'.join(section_content).strip()
-                current_section = 'STRENGTHS_WEAKNESSES'
+                current_section = 'CHARACTER_CATEGORY_5'
                 section_content = []
                 continue
             elif current_section:
@@ -505,22 +508,62 @@ Make sure to use the exact section headers as shown above, as they will be used 
         if current_section and section_content:
             sections[current_section] = '\n'.join(section_content).strip()
         
-        # Extract theme titles from the PERCEPTION_THEMES section
-        theme_titles = []
-        if 'PERCEPTION_THEMES' in sections:
-            theme_lines = sections['PERCEPTION_THEMES'].split('\n')
-            for line in theme_lines:
-                if line.strip().startswith(('1.', '2.', '3.', '4.')):
-                    # Extract just the theme title without the number
-                    parts = line.strip().split(' ', 1)
-                    if len(parts) > 1:
-                        theme_titles.append(parts[1])
-                    else:
-                        theme_titles.append(f"Theme {len(theme_titles) + 1}")
+        # Extract category titles and scores from each category section
+        category_titles = []
+        category_scores = []
         
-        # Ensure we have 4 theme titles
-        while len(theme_titles) < 4:
-            theme_titles.append(f"Theme {len(theme_titles) + 1}")
+        for i in range(1, 6):
+            key = f'CHARACTER_CATEGORY_{i}'
+            if key in sections:
+                content = sections[key]
+                
+                # Extract title by finding the first line that's not empty
+                lines = content.split('\n')
+                title = None
+                for line in lines:
+                    if line.strip():
+                        title = line.strip()
+                        break
+                
+                if not title:
+                    title = f"Category {i}"
+                    
+                category_titles.append(title)
+                
+                # Look for a score between 1-100 in the content
+                score_match = re.search(r'\b([1-9][0-9]?|100)\b', content)
+                if score_match:
+                    category_scores.append(int(score_match.group(1)))
+                else:
+                    # If no score found, assign a default based on overall score
+                    if 'CHARACTER_SCORE' in sections:
+                        score_text = sections['CHARACTER_SCORE']
+                        overall_score_match = re.search(r'\b([1-9][0-9]?|100)\b', score_text)
+                        if overall_score_match:
+                            default_score = int(overall_score_match.group(1))
+                        else:
+                            default_score = 70
+                    else:
+                        default_score = 70
+                    
+                    category_scores.append(default_score)
+        
+        # Make sure we have 5 categories
+        while len(category_titles) < 5:
+            category_titles.append(f"Category {len(category_titles) + 1}")
+            
+        while len(category_scores) < 5:
+            if 'CHARACTER_SCORE' in sections:
+                score_text = sections['CHARACTER_SCORE']
+                overall_score_match = re.search(r'\b([1-9][0-9]?|100)\b', score_text)
+                if overall_score_match:
+                    default_score = int(overall_score_match.group(1))
+                else:
+                    default_score = 70
+            else:
+                default_score = 70
+            
+            category_scores.append(default_score)
             
         # Extract character score
         character_score = 70  # Default score
@@ -544,15 +587,13 @@ Make sure to use the exact section headers as shown above, as they will be used 
             'character_score': character_score,
             'score_explanation': score_explanation,
             'executive_summary': sections.get('EXECUTIVE_SUMMARY', ''),
-            'perception_themes': sections.get('PERCEPTION_THEMES', ''),
-            'theme_1': sections.get('THEME_1_DETAILS', ''),
-            'theme_2': sections.get('THEME_2_DETAILS', ''),
-            'theme_3': sections.get('THEME_3_DETAILS', ''),
-            'theme_4': sections.get('THEME_4_DETAILS', ''),
-            'fan_vs_media': sections.get('FAN_VS_MEDIA', ''),
-            'on_vs_off_field': sections.get('ON_VS_OFF_FIELD', ''),
-            'strengths_weaknesses': sections.get('STRENGTHS_WEAKNESSES', ''),
-            'theme_titles': theme_titles,
+            'category_1': sections.get('CHARACTER_CATEGORY_1', ''),
+            'category_2': sections.get('CHARACTER_CATEGORY_2', ''),
+            'category_3': sections.get('CHARACTER_CATEGORY_3', ''),
+            'category_4': sections.get('CHARACTER_CATEGORY_4', ''),
+            'category_5': sections.get('CHARACTER_CATEGORY_5', ''),
+            'category_titles': category_titles,
+            'category_scores': category_scores,
             'raw_data': search_results
         }
         
@@ -595,7 +636,7 @@ col1, col2 = st.columns([1, 6])
 with col1:
     st.image("char_img.png", width=80)
 with col2:
-    st.title("Player Perception Dashboard")
+    st.title("Player Character Measurement")
 
 # --- MAIN APP ---
 player_name = st.text_input("Enter Player Name", "Patrick Mahomes")
@@ -657,41 +698,55 @@ if analyze_button:
     st.markdown(analysis_result['executive_summary'])
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # Tabbed interface for the themes
-    theme_tabs = st.tabs([
-        analysis_result['theme_titles'][0], 
-        analysis_result['theme_titles'][1], 
-        analysis_result['theme_titles'][2], 
-        analysis_result['theme_titles'][3],
-        "Fan vs Media",
-        "On/Off Field",
-        "Strengths"
-    ])
+    # Get color classes for each category based on their scores
+    category_color_classes = [get_score_color_class(score) for score in analysis_result['category_scores']]
+    
+    # Inject custom HTML to create colored tabs
+    tab_html = f"""
+    <div class="stTabs">
+        <div data-baseweb="tab-list" role="tablist">
+    """
+    
+    for i, (title, color_class) in enumerate(zip(analysis_result['category_titles'], category_color_classes)):
+        # Create each tab with score in title and color based on the score
+        score = analysis_result['category_scores'][i]
+        is_selected = i == 0  # First tab is selected by default
+        selected_attr = 'aria-selected="true"' if is_selected else 'aria-selected="false"'
+        
+        tab_html += f"""
+        <button id="tab-{i}" {selected_attr} role="tab" data-baseweb="tab" class="{color_class}">
+            {title} ({score})
+        </button>
+        """
+    
+    tab_html += """
+        </div>
+    </div>
+    """
+    
+    # Insert the custom HTML
+    st.markdown(tab_html, unsafe_allow_html=True)
+    
+    # Now create the actual tabs with streamlit
+    # The custom HTML above is just for visual styling,
+    # we still need real tabs for functionality
+    tabs = st.tabs([f"{title} ({score})" for title, score in zip(analysis_result['category_titles'], analysis_result['category_scores'])])
     
     # Fill each tab with its content
-    with theme_tabs[0]:
-        st.markdown(analysis_result['theme_1'])
+    with tabs[0]:
+        st.markdown(analysis_result['category_1'])
         
-    with theme_tabs[1]:
-        st.markdown(analysis_result['theme_2'])
+    with tabs[1]:
+        st.markdown(analysis_result['category_2'])
         
-    with theme_tabs[2]:
-        st.markdown(analysis_result['theme_3'])
+    with tabs[2]:
+        st.markdown(analysis_result['category_3'])
         
-    with theme_tabs[3]:
-        st.markdown(analysis_result['theme_4'])
+    with tabs[3]:
+        st.markdown(analysis_result['category_4'])
         
-    with theme_tabs[4]:
-        st.markdown("### Fan vs Media Perception")
-        st.markdown(analysis_result['fan_vs_media'])
-        
-    with theme_tabs[5]:
-        st.markdown("### On-Field vs Off-Field Reputation")
-        st.markdown(analysis_result['on_vs_off_field'])
-        
-    with theme_tabs[6]:
-        st.markdown("### Reputation Strengths & Weaknesses")
-        st.markdown(analysis_result['strengths_weaknesses'])
+    with tabs[4]:
+        st.markdown(analysis_result['category_5'])
     
     st.markdown("</div>", unsafe_allow_html=True)
     
