@@ -5,6 +5,7 @@ import os
 import json
 import time
 import openai
+import re
 
 # --- SETUP ---
 st.set_page_config(page_title="Player Perception Dashboard", layout="wide")
