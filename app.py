@@ -209,12 +209,12 @@ st.markdown(f"""
     }}
     
     /* Tab score styling */
-    .tab-score-container {
+    .tab-score-container {{
         display: flex;
         justify-content: center;
         margin-bottom: 15px;
-    }
-    .category-score-circle {
+    }}
+    .category-score-circle {{
         display: flex;
         align-items: center;
         justify-content: center;
@@ -225,7 +225,7 @@ st.markdown(f"""
         font-weight: bold;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         margin: 0 auto;
-    }
+    }}
     .category-score-circle.red {
         background-color: {score_colors["red"]};
     }
@@ -263,11 +263,11 @@ st.markdown(f"""
         border-left-color: {score_colors["green"]};
         background-color: rgba(82, 191, 144, 0.1);
     }
-    .tab-content {
+    .tab-content {{
         margin-top: 20px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         padding-top: 15px;
-    }
+    }}
     
     /* Mobile responsiveness */
     @media (max-width: 768px) {{
