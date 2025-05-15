@@ -364,8 +364,19 @@ def get_score_color(score):
     else:
         return "green"
 
+# Helper function to get score description
+def get_score_description(score):
+    if score < 40:
+        return "a poor"
+    elif score < 60:
+        return "a below average"
+    elif score < 80:
+        return "a good"
+    else:
+        return "an excellent"
+
 # --- FUNCTIONS ---
-def search_player_info(player_name, num_results=50):
+def search_player_info(player_name, num_results=5):
     """Search for information about an NFL player using SearchAPI"""
     SEARCH_URL = "https://www.searchapi.io/api/v1/search"
     
@@ -725,13 +736,30 @@ if analyze_button:
         st.markdown(f"**Why this score:** {analysis_result['score_explanation']}")
         st.markdown("</div>", unsafe_allow_html=True)
     
+    # Create executive summary as a summary of all categories
+    executive_summary = f"""
+    Based on comprehensive analysis, {player_name}'s character assessment reveals the following key insights:
+    
+    **On-Field Performance ({tab_data[0]['score']}/100)**: {tab_data[0]['explanation']}
+    
+    **Leadership ({tab_data[1]['score']}/100)**: {tab_data[1]['explanation']}
+    
+    **Team Relations ({tab_data[2]['score']}/100)**: {tab_data[2]['explanation']}
+    
+    **Public Image ({tab_data[3]['score']}/100)**: {tab_data[3]['explanation']}
+    
+    **Off-Field Conduct ({tab_data[4]['score']}/100)**: {tab_data[4]['explanation']}
+    
+    Overall, {player_name} scores {overall_score}/100, reflecting {get_score_description(overall_score)} character assessment based on the five key metrics.
+    """
+    
     # Display analysis in a clean container
     st.markdown("<div class='analysis-container'>", unsafe_allow_html=True)
     
     # Executive Summary at the top
     st.markdown("### Executive Summary")
     st.markdown("<div class='executive-summary'>", unsafe_allow_html=True)
-    st.markdown(analysis_result['executive_summary'])
+    st.markdown(executive_summary)
     st.markdown("</div>", unsafe_allow_html=True)
     
     # Prepare information for tabs
