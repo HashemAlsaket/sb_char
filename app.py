@@ -208,66 +208,66 @@ st.markdown(f"""
         border-left: 3px solid {primary_color};
     }}
     
-    /* Category scores */
-    .category-container {{
+    /* Tab score styling */
+    .tab-score-container {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: stretch;
-        gap: 10px;
-        margin-bottom: 20px;
-    }}
-    .category-card {{
-        flex: 1;
-        min-width: 150px;
-        background-color: rgba(30, 30, 30, 0.7);
-        border-radius: 8px;
-        padding: 15px;
-        text-align: center;
-        border-top: 5px solid transparent;
-        transition: transform 0.2s;
-    }}
-    .category-card:hover {{
-        transform: translateY(-5px);
-    }}
-    .category-title {{
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        height: 40px;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    .category-score-circle {
         display: flex;
         align-items: center;
         justify-content: center;
-    }}
-    .category-score {{
-        font-size: 26px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        color: #000000;
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        margin: 0 auto;
+    }
+    .category-score-circle.red {
+        background-color: {score_colors["red"]};
+    }
+    .category-score-circle.orange {
+        background-color: {score_colors["orange"]};
+    }
+    .category-score-circle.yellow {
+        background-color: {score_colors["yellow"]};
+    }
+    .category-score-circle.green {
+        background-color: {score_colors["green"]};
+    }
+    .tab-score-value {
+        font-size: 24px;
         font-weight: 800;
-        margin: 10px 0;
-    }}
-    .category-card.red {{
-        border-top-color: {score_colors["red"]};
-    }}
-    .category-card.orange {{
-        border-top-color: {score_colors["orange"]};
-    }}
-    .category-card.yellow {{
-        border-top-color: {score_colors["yellow"]};
-    }}
-    .category-card.green {{
-        border-top-color: {score_colors["green"]};
-    }}
-    .category-score.red {{
-        color: {score_colors["red"]};
-    }}
-    .category-score.orange {{
-        color: {score_colors["orange"]};
-    }}
-    .category-score.yellow {{
-        color: {score_colors["yellow"]};
-    }}
-    .category-score.green {{
-        color: {score_colors["green"]};
-    }}
+    }
+    .tab-score-explanation {
+        padding: 10px 15px;
+        border-radius: 4px;
+        border-left: 4px solid transparent;
+    }
+    .tab-score-explanation.red {
+        border-left-color: {score_colors["red"]};
+        background-color: rgba(255, 78, 80, 0.1);
+    }
+    .tab-score-explanation.orange {
+        border-left-color: {score_colors["orange"]};
+        background-color: rgba(252, 145, 58, 0.1);
+    }
+    .tab-score-explanation.yellow {
+        border-left-color: {score_colors["yellow"]};
+        background-color: rgba(249, 214, 46, 0.1);
+    }
+    .tab-score-explanation.green {
+        border-left-color: {score_colors["green"]};
+        background-color: rgba(82, 191, 144, 0.1);
+    }
+    .tab-content {
+        margin-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 15px;
+    }
     
     /* Mobile responsiveness */
     @media (max-width: 768px) {{
@@ -742,32 +742,6 @@ if analyze_button:
         st.markdown(f"**Why this score:** {analysis_result['score_explanation']}")
         st.markdown("</div>", unsafe_allow_html=True)
     
-    # Display category scores
-    st.markdown("### Category Scores")
-    
-    # Create category score cards in a container
-    st.markdown('<div class="category-container">', unsafe_allow_html=True)
-    
-    # Loop through the 5 categories
-    for category, data in analysis_result['category_scores'].items():
-        score = data["score"]
-        explanation = data["explanation"]
-        color_class = get_score_color(score)
-        
-        # Create a card for this category
-        st.markdown(
-            f"""
-            <div class="category-card {color_class}">
-                <div class="category-title">{category}</div>
-                <div class="category-score {color_class}">{score}</div>
-                <div class="category-explanation">{explanation}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
     # Display analysis in a clean container
     st.markdown("<div class='analysis-container'>", unsafe_allow_html=True)
     
@@ -777,22 +751,72 @@ if analyze_button:
     st.markdown(analysis_result['executive_summary'])
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # Tabbed interface for the detailed sections
+    # Tabbed interface for the detailed sections with scores
     categories = {
-        "Performance": analysis_result['details']['performance'],
-        "Leadership": analysis_result['details']['leadership'], 
-        "Team Relations": analysis_result['details']['team_relationship'],
-        "Public Image": analysis_result['details']['public_image'],
-        "Conduct": analysis_result['details']['conduct']
+        "Performance": {
+            "content": analysis_result['details']['performance'],
+            "score": analysis_result['category_scores']["On-Field Performance"]["score"],
+            "explanation": analysis_result['category_scores']["On-Field Performance"]["explanation"]
+        },
+        "Leadership": {
+            "content": analysis_result['details']['leadership'],
+            "score": analysis_result['category_scores']["Leadership"]["score"],
+            "explanation": analysis_result['category_scores']["Leadership"]["explanation"]
+        },
+        "Team Relations": {
+            "content": analysis_result['details']['team_relationship'],
+            "score": analysis_result['category_scores']["Team Relationship"]["score"],
+            "explanation": analysis_result['category_scores']["Team Relationship"]["explanation"]
+        },
+        "Public Image": {
+            "content": analysis_result['details']['public_image'],
+            "score": analysis_result['category_scores']["Public Image"]["score"],
+            "explanation": analysis_result['category_scores']["Public Image"]["explanation"]
+        },
+        "Conduct": {
+            "content": analysis_result['details']['conduct'],
+            "score": analysis_result['category_scores']["Off-Field Conduct"]["score"],
+            "explanation": analysis_result['category_scores']["Off-Field Conduct"]["explanation"]
+        }
     }
     
-    category_tabs = st.tabs(list(categories.keys()))
+    # Create tab names with scores
+    tab_names = []
+    for category, data in categories.items():
+        tab_names.append(category)
     
-    # Fill each tab with its content
-    for i, (category, content) in enumerate(categories.items()):
+    category_tabs = st.tabs(tab_names)
+    
+    # Fill each tab with its content including score
+    for i, (category, data) in enumerate(categories.items()):
+        score = data["score"]
+        explanation = data["explanation"]
+        content = data["content"]
+        color_class = get_score_color(score)
+        
         with category_tabs[i]:
-            st.markdown(f"### {category}")
+            # Display score in this tab
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                st.markdown(
+                    f"""
+                    <div class="tab-score-container">
+                        <div class="category-score-circle {color_class}">
+                            <span class="tab-score-value">{score}</span>
+                        </div>
+                    </div>
+                    """, 
+                    unsafe_allow_html=True
+                )
+            with col2:
+                st.markdown(f"<div class='tab-score-explanation {color_class}'>", unsafe_allow_html=True)
+                st.markdown(f"**{explanation}**")
+                st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Display content
+            st.markdown("<div class='tab-content'>", unsafe_allow_html=True)
             st.markdown(content)
+            st.markdown("</div>", unsafe_allow_html=True)
     
     st.markdown("</div>", unsafe_allow_html=True)
     
