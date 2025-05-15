@@ -774,32 +774,7 @@ if analyze_button:
     # Create colored tabs with scores
     tab_labels = [f"{tab['name']} ({tab['score']})" for tab in tab_data]
     
-    # Inject custom HTML for colored tabs
-    tab_html = f"""
-    <div class="stTabs">
-        <div data-baseweb="tab-list" role="tablist">
-    """
-    
-    for i, (label, color) in enumerate(zip(tab_labels, tab_colors)):
-        # Create each tab with color based on the score
-        is_selected = i == 0  # First tab is selected by default
-        selected_attr = 'aria-selected="true"' if is_selected else 'aria-selected="false"'
-        
-        tab_html += f"""
-        <button id="tab-{i}" {selected_attr} role="tab" data-baseweb="tab" class="tab-{color}">
-            {label}
-        </button>
-        """
-    
-    tab_html += """
-        </div>
-    </div>
-    """
-    
-    # Insert the custom HTML
-    st.markdown(tab_html, unsafe_allow_html=True)
-    
-    # Now create the actual tabs with streamlit
+    # Create the tabs with streamlit - no custom HTML injection
     tabs = st.tabs(tab_labels)
     
     # Fill each tab with its content
