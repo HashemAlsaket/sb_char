@@ -157,7 +157,7 @@ def login():
 
     st.markdown("<div class='login-form'>", unsafe_allow_html=True)
     st.markdown("<div class='login-header'>", unsafe_allow_html=True)
-    st.image("https://i.ibb.co/RvJL8PK/sports-analytics-logo.png", width=120)
+    st.image("char_img.png", width=120)
     st.markdown("</div>", unsafe_allow_html=True)
     
     st.markdown("<h2 style='text-align: center; color: #00c2cb;'>Player Perception Analyzer</h2>", unsafe_allow_html=True)
@@ -370,7 +370,7 @@ if "searchapi_key" not in st.session_state:
 # --- HEADER WITH LOGO ---
 col1, col2 = st.columns([1, 5])
 with col1:
-    st.image("https://i.ibb.co/RvJL8PK/sports-analytics-logo.png", width=80)
+    st.image("char_img.png", width=80)
 with col2:
     st.title("Player Perception Analyzer")
 
@@ -394,7 +394,7 @@ if not st.session_state["searchapi_key"]:
         st.stop()
 
 # --- SIDEBAR ---
-st.sidebar.image("https://i.ibb.co/RvJL8PK/sports-analytics-logo.png", width=80)
+st.sidebar.image("char_img.png", width=80)
 st.sidebar.header("Player Analysis")
 
 # --- MAIN APP ---
