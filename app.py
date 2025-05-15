@@ -8,7 +8,7 @@ import openai
 import re
 
 # --- SETUP ---
-st.set_page_config(page_title="Player Perception Dashboard", layout="wide")
+st.set_page_config(page_title="Player Character Measurement", layout="wide")
 
 # --- CUSTOM THEME ---
 primary_color = "#00c2cb"  # Light blue/teal from logo
@@ -207,66 +207,57 @@ st.markdown(f"""
         margin-top: 10px;
         border-left: 3px solid {primary_color};
     }}
+
+    /* Custom tab colors */
+    .tab-red {{
+        background-color: {score_colors["red"]} !important;
+        color: white !important;
+    }}
+    .tab-orange {{
+        background-color: {score_colors["orange"]} !important; 
+        color: black !important;
+    }}
+    .tab-yellow {{
+        background-color: {score_colors["yellow"]} !important;
+        color: black !important;
+    }}
+    .tab-green {{
+        background-color: {score_colors["green"]} !important;
+        color: white !important;
+    }}
     
-    /* Category scores */
-    .category-container {{
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: stretch;
-        gap: 10px;
-        margin-bottom: 20px;
-    }}
-    .category-card {{
-        flex: 1;
-        min-width: 150px;
-        background-color: rgba(30, 30, 30, 0.7);
-        border-radius: 8px;
-        padding: 15px;
-        text-align: center;
-        border-top: 5px solid transparent;
-        transition: transform 0.2s;
-    }}
-    .category-card:hover {{
-        transform: translateY(-5px);
-    }}
-    .category-title {{
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        height: 40px;
+    /* Category scores in tabs */
+    .category-header {{
         display: flex;
         align-items: center;
+        margin-bottom: 15px;
+    }}
+    .category-score-bubble {{
+        display: inline-flex;
+        align-items: center;
         justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 18px;
+        font-weight: bold;
+        margin-right: 10px;
     }}
-    .category-score {{
-        font-size: 26px;
-        font-weight: 800;
-        margin: 10px 0;
+    .category-score-bubble.red {{
+        background-color: {score_colors["red"]};
+        color: white;
     }}
-    .category-card.red {{
-        border-top-color: {score_colors["red"]};
+    .category-score-bubble.orange {{
+        background-color: {score_colors["orange"]};
+        color: black;
     }}
-    .category-card.orange {{
-        border-top-color: {score_colors["orange"]};
+    .category-score-bubble.yellow {{
+        background-color: {score_colors["yellow"]};
+        color: black;
     }}
-    .category-card.yellow {{
-        border-top-color: {score_colors["yellow"]};
-    }}
-    .category-card.green {{
-        border-top-color: {score_colors["green"]};
-    }}
-    .category-score.red {{
-        color: {score_colors["red"]};
-    }}
-    .category-score.orange {{
-        color: {score_colors["orange"]};
-    }}
-    .category-score.yellow {{
-        color: {score_colors["yellow"]};
-    }}
-    .category-score.green {{
-        color: {score_colors["green"]};
+    .category-score-bubble.green {{
+        background-color: {score_colors["green"]};
+        color: white;
     }}
     
     /* Mobile responsiveness */
@@ -275,14 +266,6 @@ st.markdown(f"""
         .stTabs [data-baseweb="tab"] {{
             padding: 8px 12px;
             font-size: 12px;
-        }}
-        
-        /* Adjust category cards for mobile */
-        .category-container {{
-            flex-direction: column;
-        }}
-        .category-card {{
-            width: 100%;
         }}
         
         /* Make content fit better on small screens */
@@ -338,7 +321,7 @@ def show_signin():
     col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
         st.image("char_img.png", width=100)
-        st.markdown("<h2 style='text-align: center; color: #00c2cb; margin-bottom: 20px;'>Player Perception Dashboard</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; color: #00c2cb; margin-bottom: 20px;'>Player Character Measurement</h2>", unsafe_allow_html=True)
         
         # Simple form with clear instructions
         st.markdown("<p style='text-align: center; margin-bottom: 25px;'>Enter your credentials to access the dashboard</p>", unsafe_allow_html=True)
@@ -686,7 +669,7 @@ col1, col2 = st.columns([1, 6])
 with col1:
     st.image("char_img.png", width=80)
 with col2:
-    st.title("Player Perception Dashboard")
+    st.title("Player Character Measurement")
 
 # --- MAIN APP ---
 player_name = st.text_input("Enter Player Name", "Patrick Mahomes")
@@ -742,32 +725,6 @@ if analyze_button:
         st.markdown(f"**Why this score:** {analysis_result['score_explanation']}")
         st.markdown("</div>", unsafe_allow_html=True)
     
-    # Display category scores
-    st.markdown("### Category Scores")
-    
-    # Create category score cards in a container
-    st.markdown('<div class="category-container">', unsafe_allow_html=True)
-    
-    # Loop through the 5 categories
-    for category, data in analysis_result['category_scores'].items():
-        score = data["score"]
-        explanation = data["explanation"]
-        color_class = get_score_color(score)
-        
-        # Create a card for this category
-        st.markdown(
-            f"""
-            <div class="category-card {color_class}">
-                <div class="category-title">{category}</div>
-                <div class="category-score {color_class}">{score}</div>
-                <div class="category-explanation">{explanation}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
     # Display analysis in a clean container
     st.markdown("<div class='analysis-container'>", unsafe_allow_html=True)
     
@@ -777,22 +734,90 @@ if analyze_button:
     st.markdown(analysis_result['executive_summary'])
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # Tabbed interface for the detailed sections
-    categories = {
-        "Performance": analysis_result['details']['performance'],
-        "Leadership": analysis_result['details']['leadership'], 
-        "Team Relations": analysis_result['details']['team_relationship'],
-        "Public Image": analysis_result['details']['public_image'],
-        "Conduct": analysis_result['details']['conduct']
-    }
+    # Prepare information for tabs
+    tab_data = [
+        {
+            "name": "On-Field Performance", 
+            "score": analysis_result['category_scores']["On-Field Performance"]["score"],
+            "explanation": analysis_result['category_scores']["On-Field Performance"]["explanation"],
+            "content": analysis_result['details']['performance']
+        },
+        {
+            "name": "Leadership", 
+            "score": analysis_result['category_scores']["Leadership"]["score"],
+            "explanation": analysis_result['category_scores']["Leadership"]["explanation"],
+            "content": analysis_result['details']['leadership']
+        },
+        {
+            "name": "Team Relations", 
+            "score": analysis_result['category_scores']["Team Relationship"]["score"],
+            "explanation": analysis_result['category_scores']["Team Relationship"]["explanation"],
+            "content": analysis_result['details']['team_relationship']
+        },
+        {
+            "name": "Public Image", 
+            "score": analysis_result['category_scores']["Public Image"]["score"],
+            "explanation": analysis_result['category_scores']["Public Image"]["explanation"],
+            "content": analysis_result['details']['public_image']
+        },
+        {
+            "name": "Off-Field Conduct", 
+            "score": analysis_result['category_scores']["Off-Field Conduct"]["score"],
+            "explanation": analysis_result['category_scores']["Off-Field Conduct"]["explanation"],
+            "content": analysis_result['details']['conduct']
+        }
+    ]
     
-    category_tabs = st.tabs(list(categories.keys()))
+    # Get color classes for each tab
+    tab_colors = [get_score_color(tab["score"]) for tab in tab_data]
+    
+    # Create colored tabs with scores
+    tab_labels = [f"{tab['name']} ({tab['score']})" for tab in tab_data]
+    
+    # Inject custom HTML for colored tabs
+    tab_html = f"""
+    <div class="stTabs">
+        <div data-baseweb="tab-list" role="tablist">
+    """
+    
+    for i, (label, color) in enumerate(zip(tab_labels, tab_colors)):
+        # Create each tab with color based on the score
+        is_selected = i == 0  # First tab is selected by default
+        selected_attr = 'aria-selected="true"' if is_selected else 'aria-selected="false"'
+        
+        tab_html += f"""
+        <button id="tab-{i}" {selected_attr} role="tab" data-baseweb="tab" class="tab-{color}">
+            {label}
+        </button>
+        """
+    
+    tab_html += """
+        </div>
+    </div>
+    """
+    
+    # Insert the custom HTML
+    st.markdown(tab_html, unsafe_allow_html=True)
+    
+    # Now create the actual tabs with streamlit
+    tabs = st.tabs(tab_labels)
     
     # Fill each tab with its content
-    for i, (category, content) in enumerate(categories.items()):
-        with category_tabs[i]:
-            st.markdown(f"### {category}")
-            st.markdown(content)
+    for i, tab in enumerate(tabs):
+        with tab:
+            data = tab_data[i]
+            color = tab_colors[i]
+            
+            # Display score and explanation at top of tab
+            st.markdown(f"""
+            <div class="category-header">
+                <span class="category-score-bubble {color}">{data['score']}</span>
+                <span><strong>{data['explanation']}</strong></span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Display the detailed content
+            st.markdown(data['content'])
     
     st.markdown("</div>", unsafe_allow_html=True)
     
