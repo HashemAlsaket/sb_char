@@ -102,6 +102,40 @@ st.markdown(f"""
         border: 1px solid rgba(220, 50, 50, 0.3);
         border-radius: 4px;
     }}
+    /* Tab styling */
+    .stTabs [data-baseweb="tab-list"] {{
+        gap: 5px;
+        background-color: rgba(30, 30, 30, 0.3);
+        border-radius: 4px;
+        padding: 5px;
+    }}
+    .stTabs [data-baseweb="tab"] {{
+        height: auto;
+        white-space: normal;
+        background-color: rgba(50, 50, 50, 0.5);
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-size: 14px;
+    }}
+    .stTabs [aria-selected="true"] {{
+        background-color: {primary_color};
+        color: {accent_color};
+    }}
+    /* Tab content */
+    .stTabs [data-baseweb="tab-panel"] {{
+        padding: 20px;
+        background-color: rgba(40, 40, 40, 0.4);
+        border-radius: 0 0 4px 4px;
+        border-top: 2px solid {primary_color};
+        margin-top: -2px;
+    }}
+    /* Executive summary block */
+    .executive-summary {{
+        padding: 15px;
+        background-color: rgba(40, 40, 40, 0.3);
+        border-left: 3px solid {primary_color};
+        margin-bottom: 20px;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -228,27 +262,36 @@ You are analyzing news coverage and information for NFL player {player_name}. Gi
 Articles:
 {articles_text}
 
-Your character report should include:
+Your character report must follow this EXACT format for proper parsing:
 
-1. Executive Summary
-- Overall public perception (positive, negative, or mixed with approximate percentages)
-- 1-2 paragraph summary of how the player is viewed by the public
+1. EXECUTIVE_SUMMARY
+[Write a 1-2 paragraph executive summary of the player's overall public perception. Include approximate percentages for positive, negative, or mixed perception.]
 
-2. Key Perception Themes
-- Identify 3-5 main themes in how the player is discussed
-- For each theme, provide evidence from the articles
+2. PERCEPTION_THEMES
+[Identify exactly 4 main themes in how the player is discussed. Number each theme and give it a clear title.]
 
-3. Fan vs Media Perception
-- Analyze any differences between how fans perceive the player vs official media
-- Provide examples of these differences
+3. THEME_1_DETAILS
+[Provide detailed analysis of the first theme with specific evidence and examples.]
 
-4. On-Field vs Off-Field Reputation
-- Compare the player's reputation for their athletic performance vs their character off the field
-- Include specific examples
+4. THEME_2_DETAILS
+[Provide detailed analysis of the second theme with specific evidence and examples.]
 
-5. Reputation Strengths & Weaknesses
-- List the strongest and weakest aspects of the player's public image
-- Include quotes or paraphrases from the articles as evidence
+5. THEME_3_DETAILS
+[Provide detailed analysis of the third theme with specific evidence and examples.]
+
+6. THEME_4_DETAILS
+[Provide detailed analysis of the fourth theme with specific evidence and examples.]
+
+7. FAN_VS_MEDIA
+[Analyze differences between fan perception vs media perception with examples.]
+
+8. ON_VS_OFF_FIELD
+[Compare on-field reputation vs off-field character with specific examples.]
+
+9. STRENGTHS_WEAKNESSES
+[List the strongest and weakest aspects of the player's public image with evidence.]
+
+Make sure to use the exact section headers as shown above, as they will be used for parsing the response.
 """
         
     try:
@@ -263,9 +306,99 @@ Your character report should include:
         )
         
         analysis_text = response.choices[0].message.content
+        
+        # Parse the sections
+        sections = {}
+        current_section = None
+        section_content = []
+        
+        for line in analysis_text.split('\n'):
+            if line.startswith('1. EXECUTIVE_SUMMARY'):
+                current_section = 'EXECUTIVE_SUMMARY'
+                continue
+            elif line.startswith('2. PERCEPTION_THEMES'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'PERCEPTION_THEMES'
+                section_content = []
+                continue
+            elif line.startswith('3. THEME_1_DETAILS'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'THEME_1_DETAILS'
+                section_content = []
+                continue
+            elif line.startswith('4. THEME_2_DETAILS'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'THEME_2_DETAILS'
+                section_content = []
+                continue
+            elif line.startswith('5. THEME_3_DETAILS'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'THEME_3_DETAILS'
+                section_content = []
+                continue
+            elif line.startswith('6. THEME_4_DETAILS'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'THEME_4_DETAILS'
+                section_content = []
+                continue
+            elif line.startswith('7. FAN_VS_MEDIA'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'FAN_VS_MEDIA'
+                section_content = []
+                continue
+            elif line.startswith('8. ON_VS_OFF_FIELD'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'ON_VS_OFF_FIELD'
+                section_content = []
+                continue
+            elif line.startswith('9. STRENGTHS_WEAKNESSES'):
+                if current_section:
+                    sections[current_section] = '\n'.join(section_content).strip()
+                current_section = 'STRENGTHS_WEAKNESSES'
+                section_content = []
+                continue
+            elif current_section:
+                section_content.append(line)
+        
+        # Add the last section
+        if current_section and section_content:
+            sections[current_section] = '\n'.join(section_content).strip()
+        
+        # Extract theme titles from the PERCEPTION_THEMES section
+        theme_titles = []
+        if 'PERCEPTION_THEMES' in sections:
+            theme_lines = sections['PERCEPTION_THEMES'].split('\n')
+            for line in theme_lines:
+                if line.strip().startswith(('1.', '2.', '3.', '4.')):
+                    # Extract just the theme title without the number
+                    parts = line.strip().split(' ', 1)
+                    if len(parts) > 1:
+                        theme_titles.append(parts[1])
+                    else:
+                        theme_titles.append(f"Theme {len(theme_titles) + 1}")
+        
+        # Ensure we have 4 theme titles
+        while len(theme_titles) < 4:
+            theme_titles.append(f"Theme {len(theme_titles) + 1}")
             
         return {
-            'analysis': analysis_text,
+            'executive_summary': sections.get('EXECUTIVE_SUMMARY', ''),
+            'perception_themes': sections.get('PERCEPTION_THEMES', ''),
+            'theme_1': sections.get('THEME_1_DETAILS', ''),
+            'theme_2': sections.get('THEME_2_DETAILS', ''),
+            'theme_3': sections.get('THEME_3_DETAILS', ''),
+            'theme_4': sections.get('THEME_4_DETAILS', ''),
+            'fan_vs_media': sections.get('FAN_VS_MEDIA', ''),
+            'on_vs_off_field': sections.get('ON_VS_OFF_FIELD', ''),
+            'strengths_weaknesses': sections.get('STRENGTHS_WEAKNESSES', ''),
+            'theme_titles': theme_titles,
             'raw_data': search_results
         }
         
@@ -343,7 +476,49 @@ if analyze_button:
     
     # Display analysis in a clean container
     st.markdown("<div class='analysis-container'>", unsafe_allow_html=True)
-    st.markdown(analysis_result['analysis'])
+    
+    # Executive Summary at the top
+    st.markdown("### Executive Summary")
+    st.markdown("<div class='executive-summary'>", unsafe_allow_html=True)
+    st.markdown(analysis_result['executive_summary'])
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Tabbed interface for the themes
+    theme_tabs = st.tabs([
+        f"Theme 1: {analysis_result['theme_titles'][0]}", 
+        f"Theme 2: {analysis_result['theme_titles'][1]}", 
+        f"Theme 3: {analysis_result['theme_titles'][2]}", 
+        f"Theme 4: {analysis_result['theme_titles'][3]}",
+        "Fan vs Media",
+        "On/Off Field",
+        "Strengths & Weaknesses"
+    ])
+    
+    # Fill each tab with its content
+    with theme_tabs[0]:
+        st.markdown(analysis_result['theme_1'])
+        
+    with theme_tabs[1]:
+        st.markdown(analysis_result['theme_2'])
+        
+    with theme_tabs[2]:
+        st.markdown(analysis_result['theme_3'])
+        
+    with theme_tabs[3]:
+        st.markdown(analysis_result['theme_4'])
+        
+    with theme_tabs[4]:
+        st.markdown("### Fan vs Media Perception")
+        st.markdown(analysis_result['fan_vs_media'])
+        
+    with theme_tabs[5]:
+        st.markdown("### On-Field vs Off-Field Reputation")
+        st.markdown(analysis_result['on_vs_off_field'])
+        
+    with theme_tabs[6]:
+        st.markdown("### Reputation Strengths & Weaknesses")
+        st.markdown(analysis_result['strengths_weaknesses'])
+    
     st.markdown("</div>", unsafe_allow_html=True)
     
     # Sources at the bottom in an expander for technical staff
