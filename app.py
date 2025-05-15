@@ -365,7 +365,7 @@ def get_score_color(score):
         return "green"
 
 # --- FUNCTIONS ---
-def search_player_info(player_name, num_results=5):
+def search_player_info(player_name, num_results=20):
     """Search for information about an NFL player using SearchAPI"""
     SEARCH_URL = "https://www.searchapi.io/api/v1/search"
     
