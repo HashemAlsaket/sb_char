@@ -27,11 +27,28 @@ st.markdown(f"""
         color: {accent_color};
         font-weight: bold;
         border: none;
-        border-radius: 20px;
+        border-radius: 4px;
+        padding: 10px 15px;
+        font-size: 16px;
     }}
     .stButton>button:hover {{
         background-color: {secondary_color};
         color: {accent_color};
+    }}
+    /* Form submit button - make it very clear */
+    button[kind="primaryFormSubmit"] {{
+        background-color: {primary_color} !important;
+        color: {background_color} !important;
+        border: none !important;
+        padding: 12px 20px !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        letter-spacing: 1px !important;
+        margin-top: 15px !important;
+    }}
+    button[kind="primaryFormSubmit"]:hover {{
+        background-color: {secondary_color} !important;
+        color: {background_color} !important;
     }}
     h1, h2, h3, h4, h5, h6 {{
         color: {secondary_color};
@@ -44,16 +61,20 @@ st.markdown(f"""
     }}
     /* Text input styling */
     div[data-baseweb="input"] input {{
-        background-color: rgba(10, 10, 10, 0.6) !important;
+        background-color: rgba(40, 40, 40, 0.6) !important;
         color: {secondary_color} !important;
-        border: 1px solid {primary_color} !important;
-        border-radius: 10px !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 4px !important;
+        padding: 10px !important;
+    }}
+    /* Form field focus */
+    div[data-baseweb="input"]:focus-within input {{
+        border-color: {primary_color} !important;
     }}
     /* Expander styling */
     div[data-testid="stExpander"] {{
-        background-color: rgba(18, 18, 18, 0.6);
-        border-radius: 10px;
-        border: 1px solid rgba(0, 194, 203, 0.2);
+        background-color: rgba(40, 40, 40, 0.6);
+        border-radius: 4px;
     }}
     /* Markdown text */
     div.stMarkdown p {{
@@ -63,30 +84,23 @@ st.markdown(f"""
     div.stSpinner > div {{
         border-top-color: {primary_color} !important;
     }}
-    /* Sign in form */
-    div.signin-form {{
-        max-width: 500px;
-        margin: 0 auto;
-        padding: 30px;
-        background-color: rgba(18, 18, 18, 0.8);
-        border-radius: 10px;
-        border: 1px solid rgba(0, 194, 203, 0.3);
-    }}
-    div.signin-header {{
-        text-align: center;
-        margin-bottom: 20px;
-    }}
     /* Analysis container */
     .analysis-container {{
-        background-color: rgba(18, 18, 18, 0.6);
-        border-radius: 10px;
+        background-color: rgba(40, 40, 40, 0.6);
+        border-radius: 4px;
         padding: 20px;
         margin-top: 20px;
-        border: 1px solid rgba(0, 194, 203, 0.2);
     }}
-    /* Remove padding from form inputs */
+    /* Remove excess padding */
     div[data-baseweb="base-input"] {{
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+    }}
+    /* Error message styling */
+    div[data-testid="stAlert"] {{
+        background-color: rgba(220, 50, 50, 0.2);
+        color: #ff6b6b;
+        border: 1px solid rgba(220, 50, 50, 0.3);
+        border-radius: 4px;
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -95,34 +109,38 @@ st.markdown(f"""
 def show_signin():
     st.session_state["authenticated"] = False
 
-    st.markdown("<div class='signin-form'>", unsafe_allow_html=True)
-    st.markdown("<div class='signin-header'>", unsafe_allow_html=True)
-    st.image("char_img.png", width=120)
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    st.markdown("<h2 style='text-align: center; color: #00c2cb;'>Player Perception Dashboard</h2>", unsafe_allow_html=True)
-    st.write("Please sign in with your team credentials")
-    
-    with st.form("SignIn"):
-        user = st.text_input("Team Email")
-        pw = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Sign In", use_container_width=True)
+    # Clean, modern sign-in form
+    col1, col2, col3 = st.columns([1, 3, 1])
+    with col2:
+        st.image("char_img.png", width=100)
+        st.markdown("<h2 style='text-align: center; color: #00c2cb; margin-bottom: 20px;'>Player Perception Dashboard</h2>", unsafe_allow_html=True)
+        
+        # Simple form with clear instructions
+        st.markdown("<p style='text-align: center; margin-bottom: 25px;'>Enter your credentials to access the dashboard</p>", unsafe_allow_html=True)
+        
+        # Create form with clearer fields
+        with st.form("SignIn", clear_on_submit=False):
+            user = st.text_input("Email")
+            pw = st.text_input("Password", type="password")
+            
+            # Large, clearly labeled button
+            st.markdown("<p style='text-align: center; margin-top: 30px;'>", unsafe_allow_html=True)
+            login_button = st.form_submit_button("SIGN IN", use_container_width=True)
+            st.markdown("</p>", unsafe_allow_html=True)
 
-        if submitted:
-            # Use appropriate credential checking based on your setup
-            try:
-                if user == st.secrets["credentials"]["username"] and pw == st.secrets["credentials"]["password"]:
-                    st.session_state["authenticated"] = True
-                else:
-                    st.error("Invalid credentials. Please try again or contact technical support.")
-            except Exception:
-                # Fallback for local development without secrets
-                if user == "admin" and pw == "password":
-                    st.session_state["authenticated"] = True
-                else:
-                    st.error("Invalid credentials. Please try again or contact technical support.")
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+            if login_button:
+                # Use appropriate credential checking based on your setup
+                try:
+                    if user == st.secrets["credentials"]["username"] and pw == st.secrets["credentials"]["password"]:
+                        st.session_state["authenticated"] = True
+                    else:
+                        st.error("Invalid credentials. Please try again.")
+                except Exception:
+                    # Fallback for local development without secrets
+                    if user == "admin" and pw == "password":
+                        st.session_state["authenticated"] = True
+                    else:
+                        st.error("Invalid credentials. Please try again.")
 
 # --- FUNCTIONS ---
 def search_player_info(player_name, num_results=5):
