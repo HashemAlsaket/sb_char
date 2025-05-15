@@ -7,7 +7,7 @@ import time
 import openai
 
 # --- SETUP ---
-st.set_page_config(page_title="Player Perception Analyzer", layout="wide")
+st.set_page_config(page_title="Player Perception Dashboard", layout="wide")
 
 # --- CUSTOM THEME ---
 primary_color = "#00c2cb"  # Light blue/teal from logo
@@ -15,7 +15,7 @@ secondary_color = "#ffffff"  # White from logo
 accent_color = "#121212"   # Dark background
 background_color = "#0a0a0a"  # Near black background
 
-# Custom CSS with theme to match logo
+# Custom CSS with theme to match logo - simplified for clarity
 st.markdown(f"""
 <style>
     .stApp {{
@@ -33,29 +33,6 @@ st.markdown(f"""
         background-color: {secondary_color};
         color: {accent_color};
     }}
-    div[data-testid="stMetricValue"] {{
-        color: {primary_color};
-        font-weight: bold;
-    }}
-    div[data-testid="stExpander"] {{
-        border-left-color: {primary_color} !important;
-    }}
-    .stTabs [data-baseweb="tab-list"] {{
-        gap: 24px;
-    }}
-    .stTabs [data-baseweb="tab"] {{
-        height: 50px;
-        white-space: pre-wrap;
-        background-color: {accent_color};
-        border-radius: 4px 4px 0 0;
-        gap: 1px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }}
-    .stTabs [aria-selected="true"] {{
-        background-color: {primary_color};
-        color: {accent_color};
-    }}
     h1, h2, h3, h4, h5, h6 {{
         color: {secondary_color};
     }}
@@ -64,55 +41,6 @@ st.markdown(f"""
     }}
     a {{
         color: {primary_color};
-    }}
-    .main-header {{
-        font-size: 2.5rem;
-        color: {primary_color};
-        text-align: center;
-        margin-bottom: 1rem;
-        font-weight: 800;
-    }}
-    .sub-header {{
-        font-size: 1.5rem;
-        color: {secondary_color};
-        margin-bottom: 2rem;
-        text-align: center;
-        opacity: 0.8;
-    }}
-    .insight-box {{
-        background-color: rgba(10, 10, 10, 0.6);
-        border-left: 5px solid {primary_color};
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        border-radius: 5px;
-    }}
-    .positive {{
-        color: #00ff9d;
-        font-weight: bold;
-    }}
-    .neutral {{
-        color: {secondary_color};
-        font-weight: bold;
-    }}
-    .negative {{
-        color: #ff5e5e;
-        font-weight: bold;
-    }}
-    .metric-card {{
-        background-color: rgba(10, 10, 10, 0.6);
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        padding: 1rem;
-        text-align: center;
-        border: 1px solid rgba(0, 194, 203, 0.2);
-    }}
-    .thinking-process {{
-        background-color: rgba(10, 10, 10, 0.6);
-        border-left: 5px solid {primary_color};
-        padding: 1rem;
-        margin-bottom: 1rem;
-        font-family: monospace;
-        border-radius: 5px;
     }}
     /* Text input styling */
     div[data-baseweb="input"] input {{
@@ -135,8 +63,8 @@ st.markdown(f"""
     div.stSpinner > div {{
         border-top-color: {primary_color} !important;
     }}
-    /* Login form */
-    div.login-form {{
+    /* Sign in form */
+    div.signin-form {{
         max-width: 500px;
         margin: 0 auto;
         padding: 30px;
@@ -144,29 +72,41 @@ st.markdown(f"""
         border-radius: 10px;
         border: 1px solid rgba(0, 194, 203, 0.3);
     }}
-    div.login-header {{
+    div.signin-header {{
         text-align: center;
         margin-bottom: 20px;
+    }}
+    /* Analysis container */
+    .analysis-container {{
+        background-color: rgba(18, 18, 18, 0.6);
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid rgba(0, 194, 203, 0.2);
+    }}
+    /* Remove padding from form inputs */
+    div[data-baseweb="base-input"] {{
+        margin-bottom: 10px;
     }}
 </style>
 """, unsafe_allow_html=True)
 
-# --- LOGIN FLOW ---
-def login():
+# --- SIGN IN FLOW ---
+def show_signin():
     st.session_state["authenticated"] = False
 
-    st.markdown("<div class='login-form'>", unsafe_allow_html=True)
-    st.markdown("<div class='login-header'>", unsafe_allow_html=True)
+    st.markdown("<div class='signin-form'>", unsafe_allow_html=True)
+    st.markdown("<div class='signin-header'>", unsafe_allow_html=True)
     st.image("char_img.png", width=120)
     st.markdown("</div>", unsafe_allow_html=True)
     
-    st.markdown("<h2 style='text-align: center; color: #00c2cb;'>Player Perception Analyzer</h2>", unsafe_allow_html=True)
-    st.write("Please log in to continue")
+    st.markdown("<h2 style='text-align: center; color: #00c2cb;'>Player Perception Dashboard</h2>", unsafe_allow_html=True)
+    st.write("Please sign in with your team credentials")
     
-    with st.form("Login"):
-        user = st.text_input("Username")
+    with st.form("SignIn"):
+        user = st.text_input("Team Email")
         pw = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Login", use_container_width=True)
+        submitted = st.form_submit_button("Sign In", use_container_width=True)
 
         if submitted:
             # Use appropriate credential checking based on your setup
@@ -174,13 +114,13 @@ def login():
                 if user == st.secrets["credentials"]["username"] and pw == st.secrets["credentials"]["password"]:
                     st.session_state["authenticated"] = True
                 else:
-                    st.error("Invalid credentials")
+                    st.error("Invalid credentials. Please try again or contact technical support.")
             except Exception:
                 # Fallback for local development without secrets
                 if user == "admin" and pw == "password":
                     st.session_state["authenticated"] = True
                 else:
-                    st.error("Invalid credentials")
+                    st.error("Invalid credentials. Please try again or contact technical support.")
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -242,26 +182,13 @@ def search_player_info(player_name, num_results=5):
         
         return search_results
     except Exception as e:
-        st.error(f"Error searching for player info: {str(e)}")
+        st.error(f"Error gathering information: {str(e)}")
         return []
 
-def analyze_with_openai(player_name, search_results, thinking_container=None):
+def analyze_with_openai(player_name, search_results):
     """Analyze player perception using OpenAI"""
     # Set OpenAI API key
     openai.api_key = st.session_state["openai_api_key"]
-    
-    if thinking_container:
-        thinking_container.markdown("### LLM Agent Thinking Process")
-        thinking_container.markdown("#### 1. Organizing search results")
-    
-    # Organize search results by category
-    general_info = [r for r in search_results if r.get('source') == 'general']
-    news_articles = [r for r in search_results if r.get('source') == 'news']
-    
-    if thinking_container:
-        thinking_container.markdown(f"- Found {len(general_info)} general information results")
-        thinking_container.markdown(f"- Found {len(news_articles)} news articles")
-        thinking_container.markdown("#### 2. Preparing data for analysis")
     
     # Format the search results for the LLM
     formatted_articles = []
@@ -275,9 +202,6 @@ def analyze_with_openai(player_name, search_results, thinking_container=None):
     
     # Join formatted results with newlines
     articles_text = "\n\n".join(formatted_articles)
-    
-    if thinking_container:
-        thinking_container.markdown("#### 3. Sending to LLM for analysis")
     
     # Create the prompt for the LLM
     prompt = f"""
@@ -308,9 +232,6 @@ Your character report should include:
 - List the strongest and weakest aspects of the player's public image
 - Include quotes or paraphrases from the articles as evidence
 """
-
-    if thinking_container:
-        thinking_container.markdown("#### 4. Generating analysis")
         
     try:
         # Call OpenAI API
@@ -324,10 +245,6 @@ Your character report should include:
         )
         
         analysis_text = response.choices[0].message.content
-        
-        if thinking_container:
-            thinking_container.markdown("#### 5. Analysis complete")
-            thinking_container.markdown("The LLM has successfully analyzed the player perception data")
             
         return {
             'analysis': analysis_text,
@@ -335,28 +252,26 @@ Your character report should include:
         }
         
     except Exception as e:
-        if thinking_container:
-            thinking_container.markdown(f"**Error:** {str(e)}")
         return {
             'error': str(e)
         }
 
+# --- AUTHENTICATION CHECK ---
 # Check authentication state
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
-# Handle login flow
+# Handle sign in flow
 if not st.session_state["authenticated"]:
-    login()
+    show_signin()
     st.stop()
 
-# --- INITIALIZE API KEYS ---
+# --- INITIALIZE API KEYS SILENTLY ---
 if "openai_api_key" not in st.session_state:
     # Try to get from secrets
     try:
         st.session_state["openai_api_key"] = st.secrets["OPENAI_API_KEY"]
     except Exception:
-        # Will prompt user to enter API key later
         st.session_state["openai_api_key"] = None
 
 if "searchapi_key" not in st.session_state:
@@ -364,89 +279,60 @@ if "searchapi_key" not in st.session_state:
     try:
         st.session_state["searchapi_key"] = st.secrets["SEARCHAPI_API_KEY"]
     except Exception:
-        # Will prompt user to enter API key later
         st.session_state["searchapi_key"] = None
 
+# Silently check if API keys are available
+api_keys_available = (st.session_state["openai_api_key"] is not None and 
+                     st.session_state["searchapi_key"] is not None)
+
 # --- HEADER WITH LOGO ---
-col1, col2 = st.columns([1, 5])
+col1, col2 = st.columns([1, 6])
 with col1:
     st.image("char_img.png", width=80)
 with col2:
-    st.title("Player Perception Analyzer")
-
-# --- API KEY CHECKS ---
-# OpenAI API Key input (if not already set)
-if not st.session_state["openai_api_key"]:
-    api_key = st.sidebar.text_input("OpenAI API Key", type="password")
-    if api_key:
-        st.session_state["openai_api_key"] = api_key
-    else:
-        st.warning("Please enter your OpenAI API key in the sidebar to continue.")
-        st.stop()
-
-# SearchAPI Key input (if not already set)
-if not st.session_state["searchapi_key"]:
-    searchapi_key = st.sidebar.text_input("SearchAPI Key", type="password")
-    if searchapi_key:
-        st.session_state["searchapi_key"] = searchapi_key
-    else:
-        st.warning("Please enter your SearchAPI key in the sidebar to continue.")
-        st.stop()
-
-# --- SIDEBAR ---
-st.sidebar.image("char_img.png", width=80)
-st.sidebar.header("Player Analysis")
+    st.title("Player Perception Dashboard")
 
 # --- MAIN APP ---
-st.markdown("<div style='background-color: rgba(10, 10, 10, 0.6); padding: 20px; border-radius: 10px; border: 1px solid rgba(0, 194, 203, 0.2);'>", unsafe_allow_html=True)
 player_name = st.text_input("Enter Player Name", "Patrick Mahomes")
 
 analyze_col1, analyze_col2, analyze_col3 = st.columns([1, 2, 1])
 with analyze_col2:
-    analyze_button = st.button("Analyze Player Perception", type="primary", use_container_width=True)
-st.markdown("</div>", unsafe_allow_html=True)
+    analyze_button = st.button("Generate Report", type="primary", use_container_width=True)
 
 # Only process analysis when button is clicked
 if analyze_button:
-    # Create a container for the thinking process
-    thinking_container = st.expander("Agent Thinking Process", expanded=True)
-    
-    # Step 1: Search for player information
-    with st.spinner(f"Searching for information about {player_name}..."):
-        thinking_container.markdown("### Search Process")
-        thinking_container.markdown(f"Searching for information about {player_name} using SearchAPI...")
+    if not api_keys_available:
+        st.error("System configuration error. Please contact technical support.")
+        st.stop()
         
+    with st.spinner(f"Generating comprehensive report for {player_name}..."):
+        # Step 1: Search for player information (without showing technical details)
         search_results = search_player_info(player_name)
         
         if not search_results:
-            st.error(f"No results found for {player_name}. Please check the name and try again.")
+            st.error(f"Unable to find sufficient information for {player_name}. Please check the spelling or try another player.")
             st.stop()
-        else:
-            thinking_container.markdown(f"Found {len(search_results)} relevant results")
-    
-    # Step 2: Analyze the search results with OpenAI
-    with st.spinner("Analyzing player perception with OpenAI..."):
-        analysis_result = analyze_with_openai(player_name, search_results, thinking_container)
+        
+        # Step 2: Analyze the search results with OpenAI (without technical details)
+        analysis_result = analyze_with_openai(player_name, search_results)
         
         if "error" in analysis_result:
-            st.error(f"Error during analysis: {analysis_result['error']}")
+            st.error(f"Error generating report: {analysis_result['error']}")
             st.stop()
     
     # Display results
-    st.markdown(f"## Perception Analysis for {player_name}")
+    st.markdown(f"## Player Report: {player_name}")
     
-    # Display search results
-    with st.expander("View Search Results", expanded=False):
+    # Display analysis in a clean container
+    st.markdown("<div class='analysis-container'>", unsafe_allow_html=True)
+    st.markdown(analysis_result['analysis'])
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Sources at the bottom in an expander for technical staff
+    with st.expander("Sources and References", expanded=False):
         st.markdown("### Information Sources")
         for i, result in enumerate(search_results):
             st.markdown(f"**Source {i+1}:** {result.get('title', 'No title')}")
-            st.markdown(f"*{result.get('snippet', 'No content')}*")
             if 'link' in result and result['link']:
                 st.markdown(f"[Link]({result['link']})")
             st.markdown("---")
-    
-    # Display analysis
-    st.markdown("<div style='background-color: rgba(10, 10, 10, 0.6); padding: 20px; border-radius: 10px; border: 1px solid rgba(0, 194, 203, 0.2);'>", unsafe_allow_html=True)
-    st.markdown("### Analysis")
-    st.markdown(analysis_result['analysis'])
-    st.markdown("</div>", unsafe_allow_html=True)
